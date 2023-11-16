@@ -5,7 +5,39 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
+LOW_STOCK_THRESHOLD = 10
+
+CONDITION_CHOICES = (
+    ('new', 'New'),
+    ('used', 'Used'),
+    ('damaged', 'Damaged'),
+)
+
+ORDER_STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('processing', 'Processing'),
+    ('shipped', 'Shipped'),
+    ('delivered', 'Delivered'),
+    ('cancelled', 'Cancelled'),
+)
+
+PAYMENT_STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+    ('refunded', 'Refunded'),
+)
+
+WORK_ORDER_STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('in_progress', 'In Progress'),
+    ('completed', 'Completed'),
+    ('on_hold', 'On Hold'),
+)
 
 GENDER_CHOICES = [
     ('M', 'Male'),
@@ -21,7 +53,7 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=2, blank=True, null=True)
     zip_code = models.CharField(max_length=5, blank=True, null=True)
-    phone = models.PhoneNumberField(blank=True, null=True)
+    phone = PhoneNumberField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics', blank=True, null=True)
@@ -68,7 +100,7 @@ class Location(models.Model):
 
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    phone = models.PhoneNumberField(blank=True, null=True)
+    phone = PhoneNumberField(blank=True, null=True)
     contact_info = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
@@ -176,10 +208,10 @@ class Device(models.Model):
     sku = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     imei = models.OneToOneField(Device_IMEI, on_delete=models.CASCADE, blank=True, null=True)
-    supplier = models.ManyToManyField(Supplier, through='ProductSupplier')
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='product_images', blank=True, null=True)
-    defect = models.OneToManyField(DeviceDefect, on_delete=models.CASCADE, blank=True, null=True)
+    defect = models.ForeignKey(DeviceDefect, on_delete=models.CASCADE, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     size = models.CharField(max_length=255, blank=True, null=True)
     weight = models.CharField(max_length=255, blank=True, null=True)
@@ -199,7 +231,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     # imei = models.CharField(max_length=15, blank=True, null=True)      
-    supplier = models.ManyToManyField(Supplier, through='ProductSupplier', blank=True, null=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
     image = models.ImageField(upload_to='product_images', blank=True, null=True)
     url = models.URLField(blank=True, null=True)
@@ -211,6 +243,7 @@ class Product(models.Model):
     
     def __str__(self):
         return f"{self.name} - Price: {self.price}"
+
 
 class ProductSupplier(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -231,12 +264,7 @@ class ProductSupplier(models.Model):
     def __str__(self):
         return f"{self.product.name} supplied by {self.supplier.name}"
 
-PAYMENT_STATUS_CHOICES = (
-    ('pending', 'Pending'),
-    ('completed', 'Completed'),
-    ('failed', 'Failed'),
-    ('refunded', 'Refunded'),
-)
+
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
     transaction_id = models.CharField(max_length=255)
@@ -251,13 +279,6 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment {self.id} for Order {self.order.id} - {self.payment_status}"
 
-ORDER_STATUS_CHOICES = (
-    ('pending', 'Pending'),
-    ('processing', 'Processing'),
-    ('shipped', 'Shipped'),
-    ('delivered', 'Delivered'),
-    ('cancelled', 'Cancelled'),
-)
 
 class Order(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
@@ -269,7 +290,7 @@ class Order(models.Model):
     shipping_city = models.CharField(max_length=255, blank=True, null=True)
     shipping_state = models.CharField(max_length=2, blank=True, null=True)
     shipping_zip_code = models.CharField(max_length=5, blank=True, null=True)
-    shipping_phone = models.PhoneNumberField(blank=True, null=True)
+    shipping_phone = PhoneNumberField(blank=True, null=True)
     shipping_method = models.CharField(max_length=255, blank=True, null=True)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -315,6 +336,7 @@ class Order(models.Model):
     def shipping_phone(self):
         return self.user.phone
 
+
 class OrderDetail(models.Model):
     order = models.ForeignKey(Order, related_name='details', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -327,11 +349,6 @@ class OrderDetail(models.Model):
     def __str__(self):
         return f"Detail for Order {self.order.id} - Product: {self.product.name}"
 
-CONDITION_CHOICES = (
-    ('new', 'New'),
-    ('used', 'Used'),
-    ('damaged', 'Damaged'),
-)
 
 class Return(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -369,8 +386,6 @@ class Return(models.Model):
     def __str__(self):
         return f"Return for {self.product.name} by {self.user.user.username} - Condition: {self.condition}"
 
-
-LOW_STOCK_THRESHOLD = 10  # You can adjust this value as needed
 
 class Inventory(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
@@ -460,12 +475,6 @@ class ShoppingCartDetail(models.Model):
     def __str__(self):
         return f"Item: {self.product.name} in Cart {self.cart.id} - Quantity: {self.quantity}"
 
-WORK_ORDER_STATUS_CHOICES = (
-    ('pending', 'Pending'),
-    ('in_progress', 'In Progress'),
-    ('completed', 'Completed'),
-    ('on_hold', 'On Hold'),
-)
 
 class WorkOrder(models.Model):
     customer = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
@@ -511,6 +520,7 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
+
 class Part(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -529,6 +539,7 @@ class Part(models.Model):
     def __str__(self):
         return self.name
     
+
 class ServiceDetail(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
@@ -543,6 +554,7 @@ class ServiceDetail(models.Model):
 
     def __str__(self):
         return f"Detail for Service {self.service.name}"
+
 
 class WorkOrderDetail(models.Model):
     work_order = models.ForeignKey(WorkOrder, related_name='details', on_delete=models.CASCADE)
