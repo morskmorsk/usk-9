@@ -6,27 +6,28 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 
+
+GENDER_CHOICES = [
+    ('M', 'Male'),
+    ('F', 'Female'),
+    ('O', 'Other'),
+    ('P', 'Prefer not to say'),
+]
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
-    state = models.CharField(max_length=2, default='AL')
+    state = models.CharField(max_length=2, blank=True, null=True)
     zip_code = models.CharField(max_length=5, blank=True, null=True)
     phone = models.PhoneNumberField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
-    gender = models.CharField(max_length=1, blank=True, null=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     additional_info = models.TextField(blank=True, null=True)
 
-    @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-    def create_user_profile(sender, instance, created, **kwargs):
-        if created:
-            UserProfile.objects.create(user=instance)
-
-    @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-    def save_user_profile(sender, instance, **kwargs):
-        instance.userprofile.save()
 
     def __str__(self):
         return f"{self.user.username}'s profile"
