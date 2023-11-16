@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+from phonenumber_field.modelfields import PhoneNumberField
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -12,7 +12,7 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=2, default='AL')
     zip_code = models.CharField(max_length=5, blank=True, null=True)
-    phone = models.CharField(max_length=12)
+    phone = models.PhoneNumberField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=1, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics', blank=True, null=True)
@@ -61,7 +61,7 @@ class Location(models.Model):
 
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=12, blank=True, null=True)
+    phone = models.PhoneNumberField(blank=True, null=True)
     contact_info = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
@@ -81,7 +81,7 @@ class Device(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     imei = models.CharField(max_length=15, blank=True, null=True)
     imei_status = models.CharField(max_length=255, blank=True, null=True)
-    report = models.TextField(blank=)
+    report = models.TextField(blank=True, null=True)
     supplier = models.ManyToManyField(Supplier, through='ProductSupplier')
     # location = models.ForeignKey(Location, on_delete=models.CASCADE)
     location = models.ManyToManyField(Location, through='Inventory')
