@@ -8,7 +8,16 @@ from django.dispatch import receiver
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    additional_info = models.TextField()
+    address = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=2, default='AL')
+    zip_code = models.CharField(max_length=5, blank=True, null=True)
+    phone = models.CharField(max_length=12)
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=1, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pics', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    additional_info = models.TextField(blank=True, null=True)
 
     @receiver(post_save, sender=settings.AUTH_USER_MODEL)
     def create_user_profile(sender, instance, created, **kwargs):
@@ -25,8 +34,17 @@ class UserProfile(models.Model):
 
 class Department(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     taxable = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='category_images', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -34,9 +52,8 @@ class Department(models.Model):
 
 class Location(models.Model):
     name = models.CharField(max_length=255, default='default location')
+    description = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=255, default='default address')
-    # capacity = models.IntegerField()
-    # department = models.ForeignKey(Department, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -44,22 +61,48 @@ class Location(models.Model):
 
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    contact_info = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
+    phone = models.CharField(max_length=12, blank=True, null=True)
+    contact_info = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    zip_code = models.CharField(max_length=5)
+
 
     def __str__(self):
         return self.name
 
 
-class Product(models.Model):
+class Device(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     sku = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    imei = models.CharField(max_length=15, blank=True, null=True)  # IMEI is optional, as not all products are devices.
+    imei = models.CharField(max_length=15, blank=True, null=True)
+    imei_status = models.CharField(max_length=255, blank=True, null=True)
+    report = models.TextField(blank=)
     supplier = models.ManyToManyField(Supplier, through='ProductSupplier')
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    # location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    location = models.ManyToManyField(Location, through='Inventory')
+    image = models.ImageField(upload_to='product_images', blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    device = models.OneToOneField(Device, on_delete=models.CASCADE)
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    sku = models.CharField(max_length=255)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    # IMEI is optional, as not all products are devices.
+    imei = models.CharField(max_length=15, blank=True, null=True)      
+    supplier = models.ManyToManyField(Supplier, through='ProductSupplier', blank=True, null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
     # location = models.ManyToManyField(Location, through='Inventory')
     image = models.ImageField(upload_to='product_images', blank=True, null=True)
 
@@ -87,7 +130,7 @@ class Inventory(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
-    status = models.CharField(max_length=255)
+    status = models.CharField(max_length=255, default='pending')
     order_date = models.DateTimeField(default=timezone.now)
     # Other fields as necessary
 
@@ -120,7 +163,7 @@ class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    comment = models.TextField()
+    comment = models.TextField(blank=True, null=True)
     review_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -148,7 +191,7 @@ class Return(models.Model):
 
 
 class ShoppingCart(models.Model):
-    customer = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    customer = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -172,18 +215,13 @@ class ShoppingCartDetail(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     added_at = models.DateTimeField(auto_now_add=True)
 
-    # class Meta:
-    #     unique_together = ('cart', 'product')
 
     def __str__(self):
         return f"Detail for Shopping Cart {self.cart.id}"
 
 
 class WorkOrder(models.Model):
-    customer = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    # description = models.TextField()
-    # assigned_technician = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assigned_workorders', on_delete=models.SET_NULL, null=True, blank=True)
+    customer = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     STATUS_CHOICES = (
@@ -211,3 +249,24 @@ class WorkOrderDetail(models.Model):
     def __str__(self):
         return f"Detail for Work Order {self.work_order.id}"
 
+
+class Service(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    sku = models.CharField(max_length=255)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='product_images', blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ServiceDetail(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    work_order = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"Detail for Service {self.service.name}"
