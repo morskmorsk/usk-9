@@ -132,7 +132,7 @@ class DeviceDefect(models.Model):
 
 
     def __str__(self):
-        return self.name
+        return self.defect_name
 
 
 class Device_IMEI(models.Model):
