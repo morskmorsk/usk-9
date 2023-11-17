@@ -145,7 +145,7 @@ class Device_IMEI(models.Model):
 
 
     def __str__(self):
-        return self.name
+        return self.imei
 
 
 class DeviceManufacturer(models.Model):
@@ -195,9 +195,6 @@ class DeviceModel(models.Model):
     def __str__(self):
         return f"{self.manufacturer.name} {self.name} - {self.model_number}"
 
-    def __str__(self):
-        return self.name
-
 
 class Device(models.Model):
     name = models.CharField(max_length=255)
@@ -242,7 +239,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.name} - Price: {self.price}"
+        return f"{self.name} - Price: {self.price:.2f}"
 
 
 class ProductSupplier(models.Model):
@@ -277,8 +274,8 @@ class Payment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Payment {self.id} for Order {self.order.id} - {self.payment_status}"
-
+        return f"Payment {self.id} - {self.payment_status}"
+    
 
 class Order(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
