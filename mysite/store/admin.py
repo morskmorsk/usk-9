@@ -3,7 +3,7 @@ from .models import (Department, Category, Location, Supplier, DeviceDefect, Dev
                      DeviceManufacturer, DeviceStatus, DeviceGrade, DeviceModel, Product,
                      ProductSupplier, Payment, Order, OrderDetail, Return, Inventory,
                      Review, ShoppingCart, ShoppingCartDetail,Payment,
-                     WorkOrder, Service, Part, ServiceDetail,WorkOrderDetail,
+                     WorkOrder, Service, Part, ServiceDetail,WorkOrderDetail, Device
                      )
 
 
@@ -17,6 +17,7 @@ admin.site.register(DeviceManufacturer)
 admin.site.register(DeviceStatus)
 admin.site.register(DeviceGrade)
 admin.site.register(DeviceModel)
+admin.site.register(Device)
 admin.site.register(Product)
 admin.site.register(ProductSupplier)
 admin.site.register(Inventory)
