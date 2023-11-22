@@ -222,28 +222,9 @@ class Device(models.Model):
         return f"{self.name} - SKU: {self.sku}"
 
 
-class Inventory(models.Model):
-    # product = models.OneToOneField(Product, on_delete=models.CASCADE)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    quantity_available = models.IntegerField(default=0)
-    quantity_reserved = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def total_inventory(self):
-        return self.quantity_available - self.quantity_reserved
-
-    def is_stock_low(self):
-        return self.quantity_available <= LOW_STOCK_THRESHOLD
-
-    def __str__(self):
-        return f"{self.product.name} in {self.location.name} - Available: {self.quantity_available}"
-
-
-
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, blank=True, null=True)
+    # inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, blank=True, null=True)
     # device = models.ForeignKey(Device, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -262,6 +243,24 @@ class Product(models.Model):
     
     def __str__(self):
         return f"{self.name} - Price: {self.price:.2f}"
+
+
+class Inventory(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
+    quantity_available = models.IntegerField(default=0)
+    quantity_reserved = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def total_inventory(self):
+        return self.quantity_available - self.quantity_reserved
+
+    def is_stock_low(self):
+        return self.quantity_available <= LOW_STOCK_THRESHOLD
+
+    def __str__(self):
+        return f"{self.product.name} in {self.location.name} - Available: {self.quantity_available}"
 
 
 

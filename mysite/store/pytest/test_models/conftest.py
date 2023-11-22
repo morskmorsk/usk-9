@@ -12,6 +12,10 @@ User = get_user_model()
 
 
 @pytest.fixture
+def test_time():
+    return timezone.now()
+
+@pytest.fixture
 def new_user(db):
     def create_user(username):
         # Ensure uniqueness by deleting any existing user with the same username
@@ -43,9 +47,37 @@ def test_location():
         name='Test Location')
     return location
 
+
 @pytest.fixture
-def test_inventory(test_location):
+def test_product(test_supplier, test_location, test_department):
+    product = Product.objects.create(
+        name='Test Product',
+        supplier=test_supplier,
+        # inventory=test_inventory,
+        description='Test Product Description',
+        price=Decimal('10.00'),
+        sku='TESTSKU',
+        department=test_department,
+        location=test_location,
+        url='https://www.testproduct.com',
+        is_on_sale=False,
+        sale_start_date=None,
+        sale_end_date=None,
+    )
+    return product
+
+
+# class Inventory(models.Model):
+#     product = models.OneToOneField(Product, on_delete=models.CASCADE)
+#     location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
+#     quantity_available = models.IntegerField(default=0)
+#     quantity_reserved = models.IntegerField(default=0)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+@pytest.fixture
+def test_inventory(test_location, test_product):
     inventory = Inventory.objects.create(
+        product=test_product,
         location=test_location,
         quantity_available=10,
         quantity_reserved=2,
@@ -64,25 +96,6 @@ def test_department():
     department = Department.objects.create(
         name='Test Department', taxable=True)
     return department
-
-
-@pytest.fixture
-def test_product(test_supplier, test_inventory, test_location, test_department):
-    product = Product.objects.create(
-        name='Test Product',
-        supplier=test_supplier,
-        inventory=test_inventory,
-        # description='Test Product Description',
-        price=Decimal('10.00'),
-        sku='TESTSKU',
-        department=test_department,
-        location=test_location,
-        url='https://www.testproduct.com',
-        is_on_sale=False,
-        sale_start_date=None,
-        sale_end_date=None,
-    )
-    return product
 
 
 @pytest.fixture

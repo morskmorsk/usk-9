@@ -28,7 +28,6 @@ class ProductListView(LoginRequiredMixin,ListView):
         plural_name = 'Products'
 
 
-
 class ProductDetailView(LoginRequiredMixin, DetailView):
     model = Product
     template_name = 'store/product_detail.html'
