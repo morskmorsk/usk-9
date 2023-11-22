@@ -11,35 +11,23 @@
 #     bio = models.TextField(blank=True, null=True)
 #     additional_info = models.TextField(blank=True, null=True)
 
-
-#     def __str__(self):
-#         return f"{self.user.username}'s profile"
-
-
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 from .models import UserProfile
-from django.forms import ModelForm
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 
-class UserForm(ModelForm):
+class UserForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ['username', 'password']
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
+        fields = ('username', 'password1', 'password2')
 
     def save(self, commit=True):
         user = super(UserForm, self).save(commit=False)
-        user.set_password(self.cleaned_data['password'])
-        user.save()
-        user_profile, created = UserProfile.objects.get_or_create(user=user)
-        user_profile.save()
+        user_profile = UserProfile(user=user)
         if commit:
-            return user
-
+            user.save()
+            user_profile.save()
+        return user
 
 
 
