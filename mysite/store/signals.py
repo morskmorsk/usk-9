@@ -48,15 +48,15 @@ def reserve_inventory(sender, instance, created, **kwargs):
         product_inventory.quantity_reserved += instance.quantity
         product_inventory.save()
 
-@receiver(post_save, sender=WorkOrderDetail)
-def update_inventory_on_work_order(sender, instance, created, **kwargs):
-    if created or instance.quantity_changed:
-        part_inventory = Inventory.objects.get(product=instance.part)
-        part_inventory.quantity_reserved += instance.quantity
-        part_inventory.save()
+# @receiver(post_save, sender=WorkOrderDetail)
+# def update_inventory_on_work_order(sender, instance, created, **kwargs):
+#     if created or instance.quantity_changed:
+#         part_inventory = Inventory.objects.get(product=instance.part)
+#         part_inventory.quantity_reserved += instance.quantity
+#         part_inventory.save()
 
-@receiver(post_delete, sender=WorkOrderDetail)
-def release_inventory_on_work_order_delete(sender, instance, **kwargs):
-    part_inventory = Inventory.objects.get(product=instance.part)
-    part_inventory.quantity_reserved -= instance.quantity
-    part_inventory.save()
+# @receiver(post_delete, sender=WorkOrderDetail)
+# def release_inventory_on_work_order_delete(sender, instance, **kwargs):
+#     part_inventory = Inventory.objects.get(product=instance.part)
+#     part_inventory.quantity_reserved -= instance.quantity
+#     part_inventory.save()

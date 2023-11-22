@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -46,6 +47,7 @@ GENDER_CHOICES = [
     ('P', 'Prefer not to say'),
 ]
 
+TAX_RATE = Decimal('0.09')
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -105,7 +107,7 @@ class Supplier(models.Model):
     address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=2, blank=True, null=True)
-    zip_code = models.CharField(max_length=5)
+    zip_code = models.CharField(max_length=5, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     email = models.EmailField(blank=True, null=True)
@@ -220,8 +222,28 @@ class Device(models.Model):
         return f"{self.name} - SKU: {self.sku}"
 
 
+class Inventory(models.Model):
+    # product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    quantity_available = models.IntegerField(default=0)
+    quantity_reserved = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def total_inventory(self):
+        return self.quantity_available - self.quantity_reserved
+
+    def is_stock_low(self):
+        return self.quantity_available <= LOW_STOCK_THRESHOLD
+
+    def __str__(self):
+        return f"{self.product.name} in {self.location.name} - Available: {self.quantity_available}"
+
+
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
+    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, blank=True, null=True)
     # device = models.ForeignKey(Device, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -262,8 +284,37 @@ class ProductSupplier(models.Model):
         return f"{self.product.name} supplied by {self.supplier.name}"
 
 
+
+class Order(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
+    order_date = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='pending')
+    payment_date = models.DateTimeField(blank=True, null=True)
+    shipped_date = models.DateTimeField(blank=True, null=True)
+    shipping_address = models.CharField(max_length=255, blank=True, null=True)
+    shipping_city = models.CharField(max_length=255, blank=True, null=True)
+    shipping_state = models.CharField(max_length=2, blank=True, null=True)
+    shipping_zip_code = models.CharField(max_length=5, blank=True, null=True)
+    shipping_phone = PhoneNumberField(blank=True, null=True)
+    shipping_method = models.CharField(max_length=255, blank=True, null=True)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    tracking_number = models.CharField(max_length=255, blank=True, null=True)
+    tracking_url = models.URLField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Order {self.id} - Status: {self.status}"
+
+
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
+    Order = models.ForeignKey(Order, on_delete=models.CASCADE, blank=True, null=True)
     transaction_id = models.CharField(max_length=255)
     payment_method = models.CharField(max_length=255)
     payment_gateway = models.CharField(max_length=255)
@@ -276,63 +327,6 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment {self.id} - {self.payment_status}"
     
-
-class Order(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
-    status = models.CharField(max_length=255, default='pending')
-    order_date = models.DateTimeField(default=timezone.now)
-    payment_date = models.DateTimeField(blank=True, null=True)
-    shipped_date = models.DateTimeField(blank=True, null=True)
-    shipping_address = models.CharField(max_length=255, blank=True, null=True)
-    shipping_city = models.CharField(max_length=255, blank=True, null=True)
-    shipping_state = models.CharField(max_length=2, blank=True, null=True)
-    shipping_zip_code = models.CharField(max_length=5, blank=True, null=True)
-    shipping_phone = PhoneNumberField(blank=True, null=True)
-    shipping_method = models.CharField(max_length=255, blank=True, null=True)
-    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    tracking_number = models.CharField(max_length=255, blank=True, null=True)
-    tracking_url = models.URLField(blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='pending')
-
-    def __str__(self):
-        return f"Order {self.id} - Status: {self.status}"
-
-    def subtotal(self):
-        return sum(item.product.price * item.quantity for item in self.details.all())
-    
-    def tax(self):
-        return self.subtotal() * 0.07
-    
-    def total(self):
-        return self.subtotal() + self.tax() + self.shipping_cost
-    
-    def shipping_cost(self):
-        return 5.00
-    
-    def shipping_method(self):
-        return "USPS"
-    
-    def shipping_address(self):
-        return self.user.address
-    
-    def shipping_city(self):
-        return self.user.city
-    
-    def shipping_state(self):
-        return self.user.state
-    
-    def shipping_zip_code(self):
-        return self.user.zip_code
-    
-    def shipping_phone(self):
-        return self.user.phone
-
 
 class OrderDetail(models.Model):
     order = models.ForeignKey(Order, related_name='details', on_delete=models.CASCADE)
@@ -351,12 +345,12 @@ class Return(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    reason = models.TextField()
+    quantity = models.IntegerField(default=1)
+    reason = models.TextField(blank=True, null=True)
     return_date = models.DateTimeField(default=timezone.now)
-    condition = models.CharField(max_length=255)
     restocking_fee = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    condition = models.CharField(max_length=255, choices=CONDITION_CHOICES)
+    condition = models.CharField(max_length=255, choices=CONDITION_CHOICES, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     refund_processed = models.BooleanField(default=False)
@@ -373,33 +367,15 @@ class Return(models.Model):
     #     else:
     #         raise ValueError("Refund already processed for this return")
 
-
     def save(self, *args, **kwargs):
-        if not self.pk:  # Check if the return is new; if so, calculate restocking fee
-            self.restocking_fee = self.product.price * 0.15
+        if not self.pk:  # Check if the return is new
+            # Convert the float to Decimal before multiplication
+            self.restocking_fee = self.product.price * Decimal('0.15')
         super(Return, self).save(*args, **kwargs)
+        # ... other logic ...
         # You would typically also update inventory and process the refund here, depending on your workflow
-
     def __str__(self):
         return f"Return for {self.product.name} by {self.user.user.username} - Condition: {self.condition}"
-
-
-class Inventory(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    quantity_available = models.IntegerField(default=0)
-    quantity_reserved = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def total_inventory(self):
-        return self.quantity_available - self.quantity_reserved
-
-    def is_stock_low(self):
-        return self.quantity_available <= LOW_STOCK_THRESHOLD
-
-    def __str__(self):
-        return f"{self.product.name} in {self.location.name} - Available: {self.quantity_available}"
 
 
 class Review(models.Model):
@@ -413,6 +389,11 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review for {self.product.name} by {self.user.user.username} - Rating: {self.rating}"
+    
+    class Meta:
+        ordering = ['-review_date']
+        unique_together = ['product', 'user']
+        verbose_name_plural = 'Reviews'
 
 # Handling Abandoned Carts
 
@@ -433,13 +414,13 @@ class ShoppingCart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def tax(self):
-        return sum(item.product.price * item.quantity for item in self.details.all()) * 0.07
-
+        pass
+    
     def subtotal(self):
-        return sum(item.product.price * item.quantity for item in self.details.all())
+        pass
 
     def total(self):
-        return self.subtotal() + self.tax()
+        pass
 
     def __str__(self):
         return f"Shopping Cart for {self.customer.user.username}"
@@ -455,8 +436,27 @@ class ShoppingCartDetail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def item_tax(self):
+        try:
+            product_department = self.product.department
+            if product_department.taxable:
+                return self.price * self.quantity * TAX_RATE  # TAX_RATE is a Decimal object
+            else:
+                return Decimal('0.00')
+        except:
+            return Decimal('0.00')
+
     def item_subtotal(self):
-        return self.price * self.quantity
+        try:
+            return (self.price * self.quantity)
+        except:
+            return Decimal('999.99')
+    
+    def item_total(self):
+        try:
+            return self.item_subtotal() + self.item_tax()
+        except:
+            return Decimal('99999.99')
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -486,7 +486,7 @@ class WorkOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def total_cost(self):
-        return sum(item.service_cost * item.quantity for item in self.details.all()) + sum(item.part_cost * item.quantity for item in self.details.all())
+        pass
     
     def save(self, *args, **kwargs):
         if self.pk:
@@ -499,8 +499,6 @@ class WorkOrder(models.Model):
     def send_status_update_notification(self):
         # Logic to send notifications (e.g., email, SMS, internal message)
         pass
-
-
 
     def __str__(self):
         return f"Work Order {self.id} - Status: {self.get_status_display()}"
@@ -520,18 +518,20 @@ class Service(models.Model):
 
 class Part(models.Model):
     name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    Supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     quantity_available = models.IntegerField(default=0)
     quantity_reserved = models.IntegerField(default=0)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
     sku = models.CharField(max_length=255)
     url = models.URLField(blank=True, null=True)
     image = models.ImageField(upload_to='product_images', blank=True, null=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 
     def __str__(self):
         return self.name
@@ -539,15 +539,15 @@ class Part(models.Model):
 
 class ServiceDetail(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    part = models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
+    # part = models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
     service_description = models.TextField(default='repair')
-    service_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    part_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    quantity = models.IntegerField(default=1)
+    part_cost = models.DecimalField(max_digits=10, decimal_places=2, default=888.88)
+    service_cost = models.DecimalField(max_digits=10, decimal_places=2, default=888.88)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def service_price(self):
+        return self.service_cost + self.part_cost
 
     def __str__(self):
         return f"Detail for Service {self.service.name}"
@@ -555,14 +555,16 @@ class ServiceDetail(models.Model):
 
 class WorkOrderDetail(models.Model):
     work_order = models.ForeignKey(WorkOrder, related_name='details', on_delete=models.CASCADE)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service_detail = models.ForeignKey(ServiceDetail, on_delete=models.CASCADE)
+    part= models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
-    def quantity_changed(self):
-        return self.quantity != self.quantity
+    # @property
+    # def quantity_changed(self):
+    #     return self.quantity != self.quantity
     
     def __str__(self):
-        return f"Work Order {self.work_order.id} Detail - Part: {self.part.name if self.part else 'N/A'}"
+        return f"Work Order {self.work_order.id} Detail - Part: 'N/A'"
+
 

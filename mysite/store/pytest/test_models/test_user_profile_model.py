@@ -3,15 +3,6 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from store.models import UserProfile
 
-User = get_user_model()
-
-@pytest.fixture
-def new_user(db):
-    def create_user(username):
-        # Ensure uniqueness by deleting any existing user with the same username
-        User.objects.filter(username=username).delete()
-        return User.objects.create_user(username=username, password='testpass123')
-    return create_user
 
 @pytest.mark.django_db
 def test_create_user_profile(new_user):
