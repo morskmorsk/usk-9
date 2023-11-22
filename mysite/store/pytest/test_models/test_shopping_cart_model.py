@@ -4,9 +4,9 @@ from store.models import ShoppingCart
 
 # tests for ShoppingCart model
 @pytest.mark.django_db
-def test_shopping_cart_model(new_user_profile):
+def test_shopping_cart_model(test_user):
     """ Test ShoppingCart model """
-    user = new_user_profile('testuser')
+    user = test_user('testuser')
     shopping_cart = ShoppingCart.objects.create(
         customer=user,
     )

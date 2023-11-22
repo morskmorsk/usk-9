@@ -2,16 +2,7 @@
 # from django.dispatch import receiver
 # from django.conf import settings
 # from django.db import transaction
-# from .models import UserProfile, OrderDetail, Return, Inventory, Payment, ShoppingCartDetail, WorkOrderDetail
-
-# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-# def create_user_profile(sender, instance, created, **kwargs):
-#     if created:
-#         UserProfile.objects.create(user=instance)
-
-# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-# def save_user_profile(sender, instance, **kwargs):
-#     instance.userprofile.save()
+# from .models import OrderDetail, Return, Inventory, Payment, ShoppingCartDetail, WorkOrderDetail
 
 # @receiver(post_save, sender=OrderDetail)
 # def update_inventory_on_order(sender, instance, created, **kwargs):

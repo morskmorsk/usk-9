@@ -1,14 +1,13 @@
 import pytest
-from conftest import new_user_profile, new_user, order
 from django.utils import timezone
 from store.models import Order
 # import uuid
 
 
 @pytest.mark.django_db
-def test_create_order(new_user_profile):
+def test_create_order(test_user):
     order_date = timezone.now()
-    user = new_user_profile('testuser2')
+    user = test_user('testuser2')
     order = Order.objects.create(
         user=user,
         order_date=order_date,

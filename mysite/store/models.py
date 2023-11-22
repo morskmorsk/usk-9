@@ -7,9 +7,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 
+# /////////////////////////////////////////////////////////////////////////////////
 LOW_STOCK_THRESHOLD = 10
 
 CONDITION_CHOICES = (
@@ -49,23 +50,9 @@ GENDER_CHOICES = [
 
 TAX_RATE = Decimal('0.09')
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state = models.CharField(max_length=2, blank=True, null=True)
-    zip_code = models.CharField(max_length=5, blank=True, null=True)
-    phone = PhoneNumberField(blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pics', blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
-    additional_info = models.TextField(blank=True, null=True)
+User = get_user_model()
 
-
-    def __str__(self):
-        return f"{self.user.username}'s profile"
-
+# //////////////////////////////////////////////////////////////////////////////////////////
 
 class Department(models.Model):
     name = models.CharField(max_length=255)
@@ -286,7 +273,7 @@ class ProductSupplier(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
     order_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='pending')
     payment_date = models.DateTimeField(blank=True, null=True)
@@ -313,7 +300,7 @@ class Order(models.Model):
 
 
 class Payment(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     Order = models.ForeignKey(Order, on_delete=models.CASCADE, blank=True, null=True)
     transaction_id = models.CharField(max_length=255)
     payment_method = models.CharField(max_length=255)
@@ -344,7 +331,7 @@ class OrderDetail(models.Model):
 class Return(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     reason = models.TextField(blank=True, null=True)
     return_date = models.DateTimeField(default=timezone.now)
@@ -380,7 +367,7 @@ class Return(models.Model):
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.TextField(blank=True, null=True)
     review_date = models.DateTimeField(default=timezone.now)
@@ -409,7 +396,7 @@ class Review(models.Model):
 # such as saving items for later, wishlists, or recommendations based on cart contents.
 
 class ShoppingCart(models.Model):
-    customer = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    customer = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -474,11 +461,11 @@ class ShoppingCartDetail(models.Model):
 
 
 class WorkOrder(models.Model):
-    customer = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    customer = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=WORK_ORDER_STATUS_CHOICES, default='pending')
-    assigned_to = models.ForeignKey(UserProfile, related_name='assigned_orders', on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_to = models.ForeignKey(User, related_name='assigned_orders', on_delete=models.SET_NULL, null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
     estimated_completion_date = models.DateTimeField(blank=True, null=True)
     actual_completion_date = models.DateTimeField(blank=True, null=True)
@@ -508,7 +495,7 @@ class Service(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     work_order = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)
-    technician = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    technician = models.ForeignKey(User, on_delete=models.CASCADE)
     service_date = models.DateTimeField(auto_now_add=True)
 
 

@@ -1,22 +1,16 @@
 import pytest
 from django.contrib.auth import get_user_model
-from store.models import UserProfile
 from django.utils import timezone
 from decimal import Decimal
-from store.models import Order, UserProfile, Product, OrderDetail, Supplier, Location, Inventory, Department, Return, ShoppingCart, WorkOrder, Part, Service, ServiceDetail, WorkOrderDetail
+from store.models import Order, Product, OrderDetail, Supplier, Location, Inventory, Department, Return, ShoppingCart, WorkOrder, Part, Service, ServiceDetail, WorkOrderDetail
 from phonenumber_field.modelfields import PhoneNumberField
 import uuid
 
 
 User = get_user_model()
 
-
 @pytest.fixture
-def test_time():
-    return timezone.now()
-
-@pytest.fixture
-def new_user(db):
+def test_user(db):
     def create_user(username):
         # Ensure uniqueness by deleting any existing user with the same username
         User.objects.filter(username=username).delete()
@@ -25,18 +19,9 @@ def new_user(db):
 
 
 @pytest.fixture
-def new_user_profile(db, new_user):
-    def create_user_profile(username):
-        user = new_user(username)
-        user_profile, created = UserProfile.objects.get_or_create(user=user)
-        return user_profile
-    return create_user_profile
-
-
-@pytest.fixture
-def order(new_user_profile):
+def order(test_user):
     order = Order.objects.create(
-        user=new_user_profile('testuser'),
+        user=test_user('testuser'),
         order_date=timezone.now(),)
     return order
 
@@ -67,13 +52,6 @@ def test_product(test_supplier, test_location, test_department):
     return product
 
 
-# class Inventory(models.Model):
-#     product = models.OneToOneField(Product, on_delete=models.CASCADE)
-#     location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
-#     quantity_available = models.IntegerField(default=0)
-#     quantity_reserved = models.IntegerField(default=0)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
 @pytest.fixture
 def test_inventory(test_location, test_product):
     inventory = Inventory.objects.create(
@@ -109,8 +87,8 @@ def order_detail(order, test_product):
 
 
 @pytest.fixture
-def test_return(order, test_product, new_user_profile):
-    user=new_user_profile('returntestuser')
+def test_return(order, test_product, test_user):
+    user=test_user('returntestuser')
     return_obj = Return.objects.create(
         order=order,
         product=test_product,
@@ -122,16 +100,16 @@ def test_return(order, test_product, new_user_profile):
 
 
 @pytest.fixture
-def test_shopping_cart(new_user_profile):
-    user = new_user_profile('testuser')
+def test_shopping_cart(test_user):
+    user = test_user('testuser')
     return ShoppingCart.objects.create(
         customer=user,
     )
 
 
 @pytest.fixture
-def test_work_order(new_user_profile):
-    user=new_user_profile('workordertestuser')
+def test_work_order(test_user):
+    user=test_user('workordertestuser')
     work_order_created_at = timezone.now()
     work_order_updated_at = timezone.now()
     work_order = WorkOrder.objects.create(
@@ -146,17 +124,10 @@ def test_work_order(new_user_profile):
     )
     return work_order
 
-# class Service(models.Model):
-#     name = models.CharField(max_length=255)
-#     description = models.TextField()
-#     work_order = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)
-#     technician = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-#     service_date = models.DateTimeField(auto_now_add=True)
-
 
 @pytest.fixture
-def test_service(new_user_profile, test_work_order):
-    user=new_user_profile('servicetestuser')
+def test_service(test_user, test_work_order):
+    user=test_user('servicetestuser')
     service = Service.objects.create(
         name='Test Service',
         description='Test Service Description',
@@ -164,21 +135,6 @@ def test_service(new_user_profile, test_work_order):
         technician=user,
     )
     return service
-
-# class Part(models.Model):
-#     name = models.CharField(max_length=255)
-#     price = models.DecimalField(max_digits=10, decimal_places=2)
-#     description = models.TextField()
-#     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-#     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-#     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-#     quantity_available = models.IntegerField(default=0)
-#     quantity_reserved = models.IntegerField(default=0)
-#     sku = models.CharField(max_length=255)
-#     url = models.URLField(blank=True, null=True)
-#     image = models.ImageField(upload_to='product_images', blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
 
 
 @pytest.fixture
@@ -198,15 +154,6 @@ def test_part(test_department, test_location, test_supplier):
     return part
     
 
-# class ServiceDetail(models.Model):
-#     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-#     # part = models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
-#     service_description = models.TextField(default='repair')
-#     part_cost = models.DecimalField(max_digits=10, decimal_places=2, default=888.88)
-#     service_cost = models.DecimalField(max_digits=10, decimal_places=2, default=888.88)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
 @pytest.fixture
 def test_service_detail(test_service, test_part):
     service_detail = ServiceDetail.objects.create(
@@ -217,13 +164,6 @@ def test_service_detail(test_service, test_part):
         service_cost=Decimal('10.00'),
     )
     return service_detail
-
-# class WorkOrderDetail(models.Model):
-#     work_order = models.ForeignKey(WorkOrder, related_name='details', on_delete=models.CASCADE)
-#     service_detail = models.ForeignKey(ServiceDetail, on_delete=models.CASCADE)
-#     part= models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
 
 
 @pytest.fixture
