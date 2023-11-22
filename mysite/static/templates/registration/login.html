@@ -10,5 +10,6 @@
   {% if form.errors %}
     <p>Your username and password didn't match. Please try again.</p>
   {% endif %}
+  <p><a href="{% url 'register' %}">Sign up</a></p>
   {% comment %} <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p> {% endcomment %}
 {% endblock %}

@@ -264,6 +264,7 @@ class Product(models.Model):
         return f"{self.name} - Price: {self.price:.2f}"
 
 
+
 class ProductSupplier(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-3">
+  <div class="row row-cols-1 row-cols-md-3 g-4"> <!-- Use g-* classes to add space between cards -->
+    <!-- Loop through the products passed to the template by the view -->
+    {% for product in products %}
+    <div class="col">
+      <div class="card mb-4 shadow-sm h-100">
+        <!-- Optional: insert an image into the card -->
+        {% comment %} <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}"> {% endcomment %}
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ product.name }}</h5> <!-- Product name -->
+          <p class="card-text">{{ product.description }}</p> <!-- Product description -->
+          <p class="text-muted mt-auto">${{ product.price }}</p> <!-- Product price -->
+          <div class="mt-3">
+            <a href="{% url 'product-detail' product.pk %}" class="btn btn-teal btn-sm">View</a>
+            {% comment %} <a href="{% url 'cart-form' product.pk %}" class="btn btn-teal btn-sm">Add to Cart</a> {% endcomment %}
+            {% comment %} <button type="button" class="btn btn-teal btn-sm">View</button> {% endcomment %}
+            {% comment %} <button type="button" class="btn btn-teal btn-sm">Edit</button> {% endcomment %}
+            {% comment %} <button type="button" class="btn btn-teal btn-sm">Add to Cart</button> {% endcomment %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <p>No products are available.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ product.name }}</h1>
+
+<p>SKU: {{ product.sku }}</p>
+<p>Price: ${{ product.price }}</p>
+<p>Description: {{ product.description }}</p>
+<p>Department: {{ product.department }}</p>
+<p>Location: {{ product.location }}</p>
+{% comment %} <p>IMEI: {{ product.imei }}</p> {% endcomment %}
+
+{% comment %} <form action="{% url 'add-to-cart' product.id %}" method="post">
+  {% csrf_token %}
+  <p>Form rendering test: {{ form.as_p }}</p>
+  {{ form.as_p }}  <!-- Render the form fields here -->
+  <input type="submit" value="Add To Cart" />
+</form> {% endcomment %}
+{% comment %} <form action="{% url 'add-to-cart' product.id %}" method="post">
+  {% csrf_token %}
+  <input type="text" name="quantity" value="1">
+  <input type="text" name="price">
+  <input type="submit" value="Add To Cart">
+</form> {% endcomment %}
+
+<!-- ... Your existing content ... -->
+{% comment %} {{ form }} <!-- This should display the form structure if it's in the context -->
+{{ form.as_p }} <!-- Render the form fields here -->
+<!-- ... Rest of your template ... -->{% endcomment %}
+<a href="{% url 'home' %}" class="btn btn-primary">Back to Product List</a> 
+{% endblock %}
+
+

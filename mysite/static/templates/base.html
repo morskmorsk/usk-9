@@ -44,9 +44,9 @@
             <li class="nav-item">
               <a class="nav-link text-white" href="{% url 'home' %}">Shop</a>
             </li>
-            <li class="nav-item">
+            {% comment %} <li class="nav-item">
               <a class="nav-link text-white" href="{% url 'new-work-order' %}">New Work Order</a>
-            </li>
+            </li> {% endcomment %}
             {% comment %} <li class="nav-item">
               <a class="nav-link text-white" href="#">Help</a>
             </li> {% endcomment %}
@@ -59,12 +59,12 @@
             <a class="navbar-brand text-white" href="{% url 'home' %}"
               >{{ user.username }}</a
             >
-            <a class="navbar-brand text-white" href="{% url 'shopping-cart-list' %}"
+            {% comment %} <a class="navbar-brand text-white" href="{% url 'shopping-cart-list' %}"
               >Shopping Cart</a
-            >
-            <a class="navbar-brand text-white" href="{% url 'work-orders-list' %}"
+            > {% endcomment %}
+            {% comment %} <a class="navbar-brand text-white" href="{% url 'work-orders-list' %}"
               >Work Orders</a
-            >
+            > {% endcomment %}
             {% endif %}
           </div>
         </div>
