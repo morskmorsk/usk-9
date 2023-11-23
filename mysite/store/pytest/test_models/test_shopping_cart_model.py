@@ -5,12 +5,11 @@ from store.models import ShoppingCart
 # tests for ShoppingCart model
 @pytest.mark.django_db
 def test_shopping_cart_model(test_user):
-    """ Test ShoppingCart model """
     user = test_user('testuser')
     shopping_cart = ShoppingCart.objects.create(
-        customer=user,
+        user=user,
     )
-    assert shopping_cart.customer == user
-    assert str(shopping_cart) == f"Shopping Cart for {user.user.username}"
+    assert shopping_cart.user == user
+    assert str(shopping_cart) == f"Shopping Cart for {user.username}"
 
 # tests for ShoppingCart model methods

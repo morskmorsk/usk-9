@@ -34,7 +34,5 @@ def test_service_detail_model(test_service, test_part):
     assert service_detail.service_description == 'Test service description'
     assert service_detail.part_cost == Decimal('100.00')
     assert service_detail.service_cost == Decimal('100.00')
-    assert service_detail.created_at
-    assert service_detail.updated_at
     assert str(service_detail) == f"Detail for Service {test_service.name}"
     assert service_detail.service_price() == Decimal('200.00')

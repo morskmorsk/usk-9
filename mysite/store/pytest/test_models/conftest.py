@@ -10,6 +10,10 @@ import uuid
 User = get_user_model()
 
 @pytest.fixture
+def test_time():
+    return timezone.now()
+
+@pytest.fixture
 def test_user(db):
     def create_user(username):
         # Ensure uniqueness by deleting any existing user with the same username
@@ -101,9 +105,9 @@ def test_return(order, test_product, test_user):
 
 @pytest.fixture
 def test_shopping_cart(test_user):
-    user = test_user('testuser')
+    user = test_user('shoppingcarttestuser')
     return ShoppingCart.objects.create(
-        customer=user,
+        user=user,
     )
 
 
@@ -113,7 +117,7 @@ def test_work_order(test_user):
     work_order_created_at = timezone.now()
     work_order_updated_at = timezone.now()
     work_order = WorkOrder.objects.create(
-        customer=user,
+        user=user,
         status='pending',
         notes='Test notes',
         assigned_to=None,

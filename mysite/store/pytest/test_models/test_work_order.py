@@ -10,7 +10,7 @@ def test_work_order_creation(test_user):
     work_order_updated_at = timezone.now()
     user=test_user('workordertestuser')
     work_order = WorkOrder.objects.create(
-        customer=user,
+        user=user,
         status='pending',
         notes='Test notes',
         assigned_to=None,
@@ -20,7 +20,7 @@ def test_work_order_creation(test_user):
         updated_at=work_order_updated_at,
     )
     assert work_order.id == 1
-    assert work_order.customer == user
+    assert work_order.user == user
     assert work_order.status == 'pending'
     assert work_order.notes == 'Test notes'
     assert work_order.assigned_to == None

@@ -18,4 +18,4 @@ def test_return_model(test_return, order, test_product):
 @pytest.mark.django_db
 def test_return_model_str(test_return):
     return_obj = test_return
-    assert str(return_obj) == f"Return for {return_obj.product.name} by {return_obj.user.user.username} - Condition: {return_obj.condition}"
+    assert str(return_obj) == f"Return for {return_obj.product.name} by {return_obj.user.username} - Condition: {return_obj.condition}"

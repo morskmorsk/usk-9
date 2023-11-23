@@ -362,7 +362,7 @@ class Return(models.Model):
         # ... other logic ...
         # You would typically also update inventory and process the refund here, depending on your workflow
     def __str__(self):
-        return f"Return for {self.product.name} by {self.user.user.username} - Condition: {self.condition}"
+        return f"Return for {self.product.name} by {self.user.username} - Condition: {self.condition}"
 
 
 class Review(models.Model):
@@ -396,7 +396,7 @@ class Review(models.Model):
 # such as saving items for later, wishlists, or recommendations based on cart contents.
 
 class ShoppingCart(models.Model):
-    customer = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -410,7 +410,7 @@ class ShoppingCart(models.Model):
         pass
 
     def __str__(self):
-        return f"Shopping Cart for {self.customer.user.username}"
+        return f"Shopping Cart for {self.user.username}"
 
 
 class ShoppingCartDetail(models.Model):
@@ -461,7 +461,7 @@ class ShoppingCartDetail(models.Model):
 
 
 class WorkOrder(models.Model):
-    customer = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=WORK_ORDER_STATUS_CHOICES, default='pending')

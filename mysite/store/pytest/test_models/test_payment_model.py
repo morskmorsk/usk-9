@@ -7,6 +7,7 @@ from store.models import Payment
 # Test for creating a Payment instance
 @pytest.mark.django_db
 def test_create_payment(test_user):
+    user = test_user('paymenttestuser')
     transaction_id = "TXN123456"
     payment_method = "Credit Card"
     payment_gateway = "Stripe"
@@ -15,7 +16,7 @@ def test_create_payment(test_user):
     payment_status = "pending"
 
     payment = Payment.objects.create(
-        user=test_user,
+        user=user,
         transaction_id=transaction_id,
         payment_method=payment_method,
         payment_gateway=payment_gateway,
@@ -24,7 +25,7 @@ def test_create_payment(test_user):
         payment_status=payment_status
     )
 
-    assert payment.user == test_user
+    assert payment.user == user
     assert payment.transaction_id == transaction_id
     assert payment.payment_method == payment_method
     assert payment.payment_gateway == payment_gateway
