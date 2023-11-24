@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import ModelForm
 
 User = get_user_model()
 
@@ -13,3 +14,10 @@ class UserForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class AddToCartForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['quantity']
+

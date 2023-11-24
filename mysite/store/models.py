@@ -271,7 +271,6 @@ class ProductSupplier(models.Model):
         return f"{self.product.name} supplied by {self.supplier.name}"
 
 
-
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
     order_date = models.DateTimeField(default=timezone.now)

@@ -3,14 +3,13 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from .models import Product
-# from .forms import CartForm, WorkOrderForm
 from django.urls import reverse_lazy
 import logging
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
-from .forms import UserForm
+from .forms import UserForm,
 from django.contrib.auth import login
 
 from .models import Product
@@ -43,6 +42,7 @@ class RegisterView(FormView):
         user = form.save()
         login(self.request, user)  # Log in the user immediately after signup
         return super().form_valid(form)
+
 
 
 
