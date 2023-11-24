@@ -66,7 +66,6 @@ class AddToCartView(LoginRequiredMixin, View):
         return redirect('cart')  # Redirect to product list or cart page
     
 
-
 class ShoppingCartDetailListView(LoginRequiredMixin, ListView):
     model = ShoppingCartDetail
     template_name = 'store/shopping_cart_list.html'
