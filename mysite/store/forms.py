@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
+from .models import ShoppingCartDetail
 
 User = get_user_model()
 
@@ -14,5 +15,3 @@ class UserForm(UserCreationForm):
         if commit:
             user.save()
         return user
-
-

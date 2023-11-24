@@ -28,6 +28,12 @@
 {{ form.as_p }} <!-- Render the form fields here -->
 <!-- ... Rest of your template ... -->{% endcomment %}
 <a href="{% url 'home' %}" class="btn btn-primary">Back to Product List</a> 
+<form action="{% url 'add_to_cart' product.id %}" method="post">
+  {% csrf_token %}
+  {% comment %} <input type="text" name="quantity" value="1"> {% endcomment %}
+  <input type="text" name="price">
+  <input type="submit" value="Add to Cart">
+</form>
 {% endblock %}
 
 

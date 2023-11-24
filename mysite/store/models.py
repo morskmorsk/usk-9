@@ -247,7 +247,6 @@ class Inventory(models.Model):
         return f"{self.product.name} in {self.location.name} - Available: {self.quantity_available}"
 
 
-
 class ProductSupplier(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
@@ -441,16 +440,16 @@ class ShoppingCartDetail(models.Model):
         except:
             return Decimal('99999.99')
 
-    def save(self, *args, **kwargs):
-        if self.pk:
-            old_item = ShoppingCartDetail.objects.get(pk=self.pk)
-            if old_item.quantity != self.quantity:
-                # Update inventory reservation based on the new quantity
-                difference = self.quantity - old_item.quantity
-                product_inventory = Inventory.objects.get(product=self.product)
-                product_inventory.quantity_reserved += difference
-                product_inventory.save()
-        super(ShoppingCartDetail, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.pk:
+    #         old_item = ShoppingCartDetail.objects.get(pk=self.pk)
+    #         if old_item.quantity != self.quantity:
+    #             # Update inventory reservation based on the new quantity
+    #             difference = self.quantity - old_item.quantity
+    #             product_inventory = Inventory.objects.get(product=self.product)
+    #             product_inventory.quantity_reserved += difference
+    #             product_inventory.save()
+    #     super(ShoppingCartDetail, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"Item: {self.product.name} in Cart {self.cart.id} - Quantity: {self.quantity}"

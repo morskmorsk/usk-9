@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-3">
+  <h3>Your Shopping Cart</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Quantity</th>
+        <th scope="col">Name</th>
+        <th scope="col">Price</th>
+        {% comment %} <th scope="col">Total</th> {% endcomment %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in shopping_cart_items %}
+      <tr>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.product.name }}</td>
+        <td>${{ item.price }}</td>
+        {% comment %} <td>${{ item.total }}</td> {% endcomment %}
+      </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6">Your cart is empty.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
