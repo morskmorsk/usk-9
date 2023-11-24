@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
-from .forms import UserForm,
+from .forms import UserForm
 from django.contrib.auth import login
 
 from .models import Product
@@ -42,7 +42,7 @@ class RegisterView(FormView):
         user = form.save()
         login(self.request, user)  # Log in the user immediately after signup
         return super().form_valid(form)
-
-
-
-
+    
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+    

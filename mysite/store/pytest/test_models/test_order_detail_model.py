@@ -1,7 +1,7 @@
 import pytest
 from decimal import Decimal
 from store.models import OrderDetail
-from conftest import order, test_product
+from store.pytest.conftest import order, test_product
 
 
 # class OrderDetail(models.Model):

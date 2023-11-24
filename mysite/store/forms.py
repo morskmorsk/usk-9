@@ -16,8 +16,3 @@ class UserForm(UserCreationForm):
         return user
 
 
-class AddToCartForm(forms.ModelForm):
-    class Meta:
-        model = Product
-        fields = ['quantity']
-

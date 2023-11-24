@@ -1,23 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>Add to Cart</h2>
-  <p>Product: {{ product.name }}</p>
-  <p>Price: {{ product.price }}</p>
-
-  <form method="post" action="{% url 'add_to_cart' product.pk %}">
-    {% csrf_token %}
-    <label for="id_quantity">Quantity:</label>
-    <input type="number" name="quantity" id="id_quantity" min="1" required>
-
-    <button type="submit">Add to Cart</button>
-  </form>
-
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+    <h1>Home</h1>
+    <p>Welcome to the home page!</p>
 {% endblock %}
