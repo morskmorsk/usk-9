@@ -73,3 +73,10 @@ class ShoppingCartDetailListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(cart__user=self.request.user)
+    
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        cart = ShoppingCart.objects.get(user=self.request.user)
+        total= sum([item.total for item in self.get_queryset()])
+        context['total'] = total
+        return context
