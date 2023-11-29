@@ -53,7 +53,6 @@ class RegisterView(FormView):
         return super().form_invalid(form)
 
 
-
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:

@@ -1,38 +1,44 @@
-{% extends 'base.html' %}
-
-{% block content %}
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col-lg-8">
-        <h1 class="display-4">{{ product.name }}</h1>
-        <p class="text-muted">SKU: {{ product.sku }}</p>
-        <h3 class="text-success font-weight-bold">$ {{ product.price }}</h3>
-        <p>
-          <strong>Description:</strong> {{ product.description|default:'No description available.' }}
-        </p>
-        <p>
-          <strong>Department:</strong> {{ product.department }}
-        </p>
-        <p>
-          <strong>Location:</strong> {{ product.location }}
-        </p>
-      </div>
-      <div class="col-lg-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title">Add to Cart</h5>
-            <form action="{% url 'add_to_cart' product.id %}" method="post">
-              {% csrf_token %}
-              <div class="form-group">
-                <label for="priceInput">Price</label>
-                <input type="text" class="form-control" id="priceInput" name="price" placeholder="Enter price" required />
-              </div>
-              <button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
-            </form>
-          </div>
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="display-4">{{ product.name }}</h1>
+      <p class="text-muted">SKU: {{ product.sku }}</p>
+      <h3 class="text-success font-weight-bold">$ {{ product.price }}</h3>
+      <p>
+        <strong>Description:</strong> {{ product.description|default:'No
+        description available.' }}
+      </p>
+      <p><strong>Department:</strong> {{ product.department }}</p>
+      <p><strong>Location:</strong> {{ product.location }}</p>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Add to Cart</h5>
+          <form action="{% url 'add_to_cart' product.id %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="priceInput">Price</label>
+              <input
+                type="text"
+                class="form-control"
+                id="priceInput"
+                name="price"
+                placeholder="Enter price"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              Add to Cart
+            </button>
+          </form>
         </div>
       </div>
     </div>
-    <a href="{% url 'home' %}" class="btn btn-secondary mt-4 custom-button">Back to List</a>
   </div>
+  <a href="{% url 'home' %}" class="btn btn-secondary mt-4 custom-button"
+    >Back to List</a
+  >
+</div>
 {% endblock %}
