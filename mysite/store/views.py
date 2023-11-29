@@ -14,6 +14,7 @@ from django.contrib.auth import login
 from django.views import View
 from .models import Product, ShoppingCart, ShoppingCartDetail
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 
 from .models import Product
 
@@ -50,7 +51,7 @@ class RegisterView(FormView):
         return super().form_invalid(form)
 
 
-class AddToCartView(LoginRequiredMixin, View):
+class AddToCartView(LoginRequiredMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         product = get_object_or_404(Product, id=kwargs.get('product_id'))
         cart, created = ShoppingCart.objects.get_or_create(user=request.user)
@@ -66,17 +67,26 @@ class AddToCartView(LoginRequiredMixin, View):
         return redirect('cart')  # Redirect to product list or cart page
     
 
-class ShoppingCartDetailListView(LoginRequiredMixin, ListView):
-    model = ShoppingCartDetail
-    template_name = 'store/shopping_cart_list.html'
-    context_object_name = 'shopping_cart_items'
+class ShoppingCartView(LoginRequiredMixin, DetailView):
+    model = ShoppingCart
+    template_name = 'store/shopping_cart_list.html'  # replace with your actual template path
 
-    def get_queryset(self):
-        return self.model.objects.filter(cart__user=self.request.user)
+    def get_object(self, queryset=None):
+        return ShoppingCart.objects.get(user=self.request.user)
+
+
+class RemoveFromCartDetailView(LoginRequiredMixin, DeleteView):
+    def post(self, request, *args, **kwargs):
+        cart_detail = get_object_or_404(ShoppingCartDetail, id=kwargs.get('detail_id'))
+        cart_detail.delete()
+        return redirect('cart')
     
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        cart = ShoppingCart.objects.get(user=self.request.user)
-        total= sum([item.total for item in self.get_queryset()])
-        context['total'] = total
-        return context
+
+class CartDetailUpdatePriceView(LoginRequiredMixin, UpdateView):
+    model = ShoppingCartDetail
+    fields = ['price']
+    template_name = 'store/cart_detail_update.html'
+    success_url = reverse_lazy('cart')
+
+    def get_object(self, queryset=None):
+        return ShoppingCartDetail.objects.get(id=self.kwargs.get('detail_id'))
