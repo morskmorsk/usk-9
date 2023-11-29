@@ -395,14 +395,21 @@ class ShoppingCart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def tax(self):
-        pass
+    def calculate_subtotal(self):
+        subtotal = Decimal('0.00')
+        for item in self.details.all():
+            subtotal += item.price
+        return subtotal
     
-    def subtotal(self):
-        pass
+    def calculate_tax(self):
+        tax = Decimal('0.00')
+        tax = self.calculate_subtotal() * TAX_RATE
+        return tax
 
-    def total(self):
-        pass
+    def calculate_total(self):
+        total = Decimal('0.00')
+        total = self.calculate_subtotal() + self.calculate_tax()
+        return total
 
     def __str__(self):
         return f"Shopping Cart for {self.user.username}"
@@ -418,38 +425,27 @@ class ShoppingCartDetail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # def item_subtotal(self):
+    #     try:
+    #         return (self.price * self.quantity)
+    #     except:
+    #         return Decimal('999.99')
+    
     def item_tax(self):
         try:
             product_department = self.product.department
             if product_department.taxable:
-                return self.price * self.quantity * TAX_RATE  # TAX_RATE is a Decimal object
+                return self.price * TAX_RATE  # TAX_RATE is a Decimal object
             else:
                 return Decimal('0.00')
         except:
-            return Decimal('0.00')
-
-    def item_subtotal(self):
-        try:
-            return (self.price * self.quantity)
-        except:
             return Decimal('999.99')
-    
+
     def item_total(self):
         try:
-            return self.item_subtotal() + self.item_tax()
+            return self.price + self.item_tax()
         except:
-            return Decimal('99999.99')
-
-    # def save(self, *args, **kwargs):
-    #     if self.pk:
-    #         old_item = ShoppingCartDetail.objects.get(pk=self.pk)
-    #         if old_item.quantity != self.quantity:
-    #             # Update inventory reservation based on the new quantity
-    #             difference = self.quantity - old_item.quantity
-    #             product_inventory = Inventory.objects.get(product=self.product)
-    #             product_inventory.quantity_reserved += difference
-    #             product_inventory.save()
-    #     super(ShoppingCartDetail, self).save(*args, **kwargs)
+            return Decimal('999.99')
 
     def __str__(self):
         return f"Item: {self.product.name} in Cart {self.cart.id} - Quantity: {self.quantity}"
