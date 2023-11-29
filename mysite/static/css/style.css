@@ -1,3 +1,9 @@
+.custom-button {
+  padding: 10px 20px; /* Adjust the padding as needed */
+  white-space: normal; /* Allows the text to wrap */
+  text-align: center; /* Aligns the text to center */
+}
+
 .btn-teal {
   background-color: teal; /* Teal background */
   border: none; /* No border by default, can add if desired */

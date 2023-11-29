@@ -15,6 +15,8 @@ from django.views import View
 from .models import Product, ShoppingCart, ShoppingCartDetail
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
+from django.db import IntegrityError, transaction
+from django.contrib import messages
 
 from .models import Product
 
@@ -51,20 +53,30 @@ class RegisterView(FormView):
         return super().form_invalid(form)
 
 
-class AddToCartView(LoginRequiredMixin, DeleteView):
+
+class AddToCartView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        product = get_object_or_404(Product, id=kwargs.get('product_id'))
-        cart, created = ShoppingCart.objects.get_or_create(user=request.user)
-        cart_detail, created = ShoppingCartDetail.objects.get_or_create(
-            cart=cart,
-            product=product,
-            price=request.POST.get('price'),
-            defaults={'quantity': 1},
-        )
-        if not created:
-            cart_detail.quantity += 1
-        cart_detail.save()
-        return redirect('cart')  # Redirect to product list or cart page
+        try:
+            product = get_object_or_404(Product, id=kwargs.get('product_id'))
+            with transaction.atomic():
+                cart, created = ShoppingCart.objects.get_or_create(user=request.user)
+                cart_detail = ShoppingCartDetail.objects.create(
+                    cart=cart,
+                    product=product,
+                    price=request.POST.get('price'),
+                    quantity=1
+                )
+                cart_detail.save()
+        except IntegrityError as e:
+            messages.error(request, f"Error adding product to cart: {e}")
+            # Redirect to the previous page or a specific error page
+            return redirect(request.META.get('HTTP_REFERER', 'product-detail'), product_id=product.id)
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {e}")
+            # Redirect to an error page or home page
+            return redirect('home')
+
+        return redirect('cart')
     
 
 class ShoppingCartView(LoginRequiredMixin, DetailView):
