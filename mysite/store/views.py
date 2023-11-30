@@ -47,6 +47,7 @@ class RegisterView(FormView):
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)  # Log in the user immediately after signup
+        cart, created = ShoppingCart.objects.get_or_create(user=user)
         return super().form_valid(form)
     
     def form_invalid(self, form):
@@ -111,3 +112,17 @@ class CartDetailUpdatePriceView(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return ShoppingCartDetail.objects.get(id=self.kwargs.get('detail_id'))
+
+
+class CheckOutView(LoginRequiredMixin, TemplateView):
+    template_name = 'store/checkout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = ShoppingCart.objects.get(user=self.request.user)
+        context['cart'] = {
+            'subtotal': cart.calculate_subtotal(),
+            'tax': cart.calculate_tax(),
+            'total': cart.calculate_total(),
+        }
+        return context

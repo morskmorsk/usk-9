@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Checkout</h2>
+    
+    <!-- Cart Summary -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Your Order</h5>
+            <table class="table">
+                <tbody>
+                    {% for detail in cart.details.all %}
+                    <tr>
+                        <td>{{ detail.product.name }}</td>
+                        <td>{{ detail.quantity }}</td>
+                        <td>${{ detail.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">Subtotal</td>
+                        <td>${{ cart.subtotal }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Tax</td>
+                        <td>${{ cart.tax }}</td>
+                    </tr>
+                    <tr class="font-weight-bold">
+                        <td colspan="2">Total</td>
+                        <td>${{ cart.total }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Checkout Form -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Payment Information</h5>
+            <form>
+                <!-- Include form fields for payment information here -->
+                <div class="form-group">
+                    <label for="cardNumber">Card Number</label>
+                    <input type="text" class="form-control" id="cardNumber" placeholder="Card Number">
+                </div>
+                <!-- Additional fields for expiration, CVV, etc. -->
+                <button type="submit" class="btn btn-primary">Place Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

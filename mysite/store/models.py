@@ -61,8 +61,13 @@ class Department(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
     def __str__(self):
         return f"{self.name} (Created on {self.created_at.strftime('%Y-%m-%d')})"
+
+    class Meta:
+        verbose_name_plural = 'Departments'
+        ordering = ['id']
 
 
 class Category(models.Model):
@@ -227,6 +232,13 @@ class Product(models.Model):
     
     def __str__(self):
         return f"{self.name} - Price: {self.price:.2f}"
+
+    def is_on_sale(self):
+        return self.sale_start_date <= timezone.now() <= self.sale_end_date
+    
+    class Meta:
+        verbose_name_plural = 'Products'
+        ordering = ['id']
 
 
 class Inventory(models.Model):

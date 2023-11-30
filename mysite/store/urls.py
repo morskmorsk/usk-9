@@ -5,6 +5,7 @@ from .views import (ProductListView,
                     ShoppingCartView,
                     RemoveFromCartDetailView,
                     CartDetailUpdatePriceView,
+                    CheckOutView,
                     )
 
 urlpatterns = [
@@ -14,6 +15,7 @@ urlpatterns = [
      path('cart/', ShoppingCartView.as_view(), name='cart'),
      path('remove-from-cart/<int:detail_id>/', RemoveFromCartDetailView.as_view(), name='remove_from_cart'),
      path('cart-detail/<int:detail_id>/', CartDetailUpdatePriceView.as_view(), name='update-cart-detail-price'),
+     path('checkout/', CheckOutView.as_view(), name='checkout'),
      # path('cart-form', CartDetailFormView.as_view(), name='cart-form',),
      # path('add-to-cart/<int:id>/', AddToCartView.as_view(), name='add-to-cart'),
      # path('shopping-cart/', ShoppingCartListView.as_view(), name='shopping-cart-list'),
