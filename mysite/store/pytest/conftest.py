@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from store.models import Order, Product, OrderDetail, Review, Supplier, Location, Department, ShoppingCart, WorkOrder, Part, Device
+from store.models import Order, Product, OrderDetail, Review, ShoppingCartDetail, Supplier, Location, Department, ShoppingCart, WorkOrder, Part, Device
 from phonenumber_field.modelfields import PhoneNumberField
 import uuid
 
@@ -144,3 +144,47 @@ def test_review(test_user, test_product):
         review_date=timezone.now(),
     )
     return review
+
+# test_shopping_cart_detail fixture is used in test_views/test_remove_from_cart_view.py:
+# class ShoppingCartDetail(models.Model):
+#     cart = models.ForeignKey(ShoppingCart, related_name='details', on_delete=models.CASCADE)
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+#     quantity = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+#     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(10)])   
+#     discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+#     added_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+    
+#     def item_tax(self):
+#         try:
+#             product_department = self.product.department
+#             if product_department.taxable:
+#                 return self.price * TAX_RATE  # TAX_RATE is a Decimal object
+#             else:
+#                 return Decimal('0.00')
+#         except:
+#             return Decimal('999.99')
+
+#     def item_total(self):
+#         try:
+#             return self.price + self.item_tax()
+#         except:
+#             return Decimal('999.99')
+
+#     def __str__(self):
+#         return f"Item: {self.product.name} in Cart {self.cart.id} - Quantity: {self.quantity}"
+
+#     class Meta:
+#         verbose_name_plural = 'Shopping Cart Details'
+#         ordering = ['id']
+
+@pytest.fixture
+def test_shopping_cart_detail(test_shopping_cart, test_product):
+    shopping_cart_detail = ShoppingCartDetail.objects.create(
+        cart=test_shopping_cart,
+        product=test_product,
+        quantity=2,
+        price=Decimal('10.00'),
+        discount=0.00,
+    )
+    return shopping_cart_detail

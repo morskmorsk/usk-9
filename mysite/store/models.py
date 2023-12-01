@@ -197,6 +197,7 @@ class OrderDetail(models.Model):
         verbose_name_plural = 'Order Details'
         ordering = ['id']
 
+
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -242,6 +243,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Shopping Carts'
         ordering = ['id']
 
+
 class ShoppingCartDetail(models.Model):
     cart = models.ForeignKey(ShoppingCart, related_name='details', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -249,7 +251,6 @@ class ShoppingCartDetail(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(10)])   
     discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     added_at = models.DateTimeField(auto_now_add=True)
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def item_tax(self):
@@ -274,6 +275,7 @@ class ShoppingCartDetail(models.Model):
     class Meta:
         verbose_name_plural = 'Shopping Cart Details'
         ordering = ['id']
+
 
 class WorkOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
