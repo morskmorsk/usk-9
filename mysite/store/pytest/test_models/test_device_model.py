@@ -1,92 +1,75 @@
 from django.utils import timezone
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from store.models import Device, DeviceModel, Department, Supplier, Location, DeviceDefect
+from store.models import Device
 
-# Fixtures for the related models
-@pytest.fixture
-def device_model(db):
-    # Assuming necessary fields and creation for DeviceModel
-    return DeviceModel.objects.create(name="Model X")
+# create pytest tests for the following model:
+# class Device(models.Model):
+#     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     description = models.TextField(blank=True, null=True)
+#     grade = models.CharField(max_length=255 , blank=True, null=True, choices=DEVICE_GRADE_CHOICES)
+#     cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+#     price = models.DecimalField(max_digits=10, decimal_places=2)
+#     sku = models.CharField(max_length=255)
+#     imei = models.CharField(max_length=15, blank=True, null=True)
+#     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
+#     location = models.ForeignKey(Location, on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to='product_images', blank=True, null=True)
+#     defect = models.TextField(blank=True, null=True)
+#     url = models.URLField(blank=True, null=True)
+#     size = models.CharField(max_length=255, blank=True, null=True)
+#     weight = models.CharField(max_length=255, blank=True, null=True)
+#     color = models.CharField(max_length=255, blank=True, null=True)
+#     sale_start_date = models.DateTimeField(blank=True, null=True)
+#     sale_end_date = models.DateTimeField(blank=True, null=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-@pytest.fixture
-def department(db):
-    # Assuming necessary fields and creation for Department
-    return Department.objects.create(name="Electronics")
-
-@pytest.fixture
-def supplier(db):
-    # Assuming necessary fields and creation for Supplier
-    return Supplier.objects.create(name="Tech Supplier")
-
-@pytest.fixture
-def location(db):
-    # Assuming necessary fields and creation for Location
-    return Location.objects.create(name="Warehouse 1")
-
-@pytest.fixture
-def device_defect(db):
-    # Assuming necessary fields and creation for DeviceDefect
-    return DeviceDefect.objects.create(defect_name="Screen Issue")
-
-
-# Test for creating a Device instance
+#     def __str__(self):
+#         return f"{self.name} - SKU: {self.sku}"
+    
+#     def is_on_sale(self):
+#         return self.sale_start_date <= timezone.now() <= self.sale_end_date
 @pytest.mark.django_db
-def test_create_device(device_model, department, supplier, location, device_defect):
-    name = "Gadget X"
-    condition = "New"
-    description = "Latest model of Gadget X"
-    price = 499.99
-    sku = "GX-2023"
-    imei = "123456789012345"
-    image = SimpleUploadedFile("device.jpg", b"file_content", content_type="image/jpeg")
-    url = "https://www.example.com/gadget-x"
-    size = "15x10x5"
-    weight = "1.5kg"
-    color = "Black"
-
+def test_device_model(test_user, test_location, test_supplier):
     device = Device.objects.create(
-        name=name,
-        device_model=device_model,
-        condition=condition,
-        description=description,
-        price=price,
-        sku=sku,
-        department=department,
-        imei=imei,
-        supplier=supplier,
-        location=location,
-        image=image,
-        defect=device_defect,
-        url=url,
-        size=size,
-        weight=weight,
-        color=color
+        owner=test_user('devicetestowner'),
+        name='Test Device',
+        description='Test Device Description',
+        grade='A',
+        cost=10.00,
+        price=20.00,
+        sku='TESTSKU',
+        location=test_location,
+        supplier=test_supplier,
+        imei='123456789012345',
+        defect='Test Device Defect',
+        url='https://www.testdevice.com',
+        size='Test Device Size',
+        weight='Test Device Weight',
+        color='Test Device Color',
+        # sale_start_date=timezone.now(),
+        # sale_end_date=timezone.now(),
     )
+    assert device.owner.username == 'devicetestowner'
+    assert device.name == 'Test Device'
+    assert device.description == 'Test Device Description'
+    assert device.grade == 'A'
+    assert device.cost == 10.00
+    assert device.price == 20.00
+    assert device.sku == 'TESTSKU'
+    assert device.imei == '123456789012345'
+    assert device.defect == 'Test Device Defect'
+    assert device.url == 'https://www.testdevice.com'
+    assert device.size == 'Test Device Size'
+    assert device.weight == 'Test Device Weight'
+    assert device.color == 'Test Device Color'
+    # assert device.sale_start_date == timezone.now()
+    # assert device.sale_end_date == timezone.now()
+    # assert device.updated_at == timezone.now()
+    # assert device.is_on_sale() == False
+    assert device.image == None
+    assert device.supplier == test_supplier
+    assert device.location == test_location
+    assert str(device) == 'Test Device - SKU: TESTSKU'
 
-    assert device.name == name
-    assert device.condition == condition
-    assert device.description == description
-    assert device.price == price
-    assert device.sku == sku
-    assert device.imei == imei
-    assert device.image  # Check if image is uploaded
-    assert device.url == url
-    assert device.size == size
-    assert device.weight == weight
-    assert device.color == color
-    assert device.created_at <= timezone.now()
-    assert device.updated_at <= timezone.now()
-
-# Test for string representation of Device
-@pytest.mark.django_db
-def test_device_str(device_model, department, location):
-    device = Device.objects.create(
-        name="Device Y",
-        sku="DY-2023",
-        device_model=device_model,
-        department=department,
-        location=location,
-        price=100.00  # Add a default price to satisfy the NOT NULL constraint
-    )
-    assert str(device) == "Device Y - SKU: DY-2023"

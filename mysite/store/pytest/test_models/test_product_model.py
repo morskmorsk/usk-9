@@ -39,8 +39,7 @@ def test_create_product(test_department, test_supplier, test_location):
         location=location,
         image=image,
         url=url,
-        is_on_sale=False,
-        # created_at=timezone.now(),
+        # is_on_sale=False,
         # updated_at=timezone.now(),
     )
 
@@ -53,8 +52,7 @@ def test_create_product(test_department, test_supplier, test_location):
     assert product.location == location
     assert product.image  # Check if image is uploaded
     assert product.url == url
-    assert product.is_on_sale == False
-    # assert product.created_at == created_at
+    # assert product.is_on_sale == False
     # assert product.updated_at == updated_at
 
 # Test for string representation of Product

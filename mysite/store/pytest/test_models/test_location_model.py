@@ -17,7 +17,6 @@ def test_create_location():
     assert location.name == location_name
     assert location.address == location_address
     assert location.description == location_description
-    assert location.created_at <= timezone.now()
     assert location.updated_at <= timezone.now()
 
 @pytest.mark.django_db
@@ -34,5 +33,4 @@ def test_location_blank_fields():
     assert location.name is None
     assert location.address is None
     assert location.description is None
-    assert location.created_at <= timezone.now()
     assert location.updated_at <= timezone.now()

@@ -6,7 +6,6 @@ from django.utils import timezone
 # test work order creation
 @pytest.mark.django_db
 def test_work_order_creation(test_user):
-    work_order_created_at = timezone.now()
     work_order_updated_at = timezone.now()
     user=test_user('workordertestuser')
     work_order = WorkOrder.objects.create(
@@ -16,7 +15,6 @@ def test_work_order_creation(test_user):
         assigned_to=None,
         estimated_completion_date=None,
         actual_completion_date=None,
-        created_at=work_order_created_at,
         updated_at=work_order_updated_at,
     )
     assert work_order.id == 1

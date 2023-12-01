@@ -42,7 +42,6 @@ def test_create_supplier():
     assert supplier.contact_person == supplier_contact_person
     assert supplier.type == supplier_type
     assert supplier.notes == supplier_notes
-    assert supplier.created_at <= timezone.now()
     assert supplier.updated_at <= timezone.now()
 
 @pytest.mark.django_db
