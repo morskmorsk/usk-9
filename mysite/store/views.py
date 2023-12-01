@@ -17,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.db import IntegrityError, transaction
 from django.contrib import messages
+from django.contrib.auth.models import User
 
 from .models import Product
 
@@ -126,3 +127,15 @@ class CheckOutView(LoginRequiredMixin, TemplateView):
             'total': cart.calculate_total(),
         }
         return context
+
+
+
+class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'email']
+    template_name = 'store/user_profile_update.html'
+    success_url = reverse_lazy('home')
+    success_message = 'Profile successfully updated!'
+
+    def get_object(self, queryset=None):
+        return self.request.user
