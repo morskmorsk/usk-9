@@ -1,4 +1,6 @@
+import random
 from typing import Any
+import uuid
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, TemplateView
 from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,10 +14,10 @@ from django.views.generic.edit import FormView
 from .forms import UserForm
 from django.contrib.auth import login
 from django.views import View
-from .models import Product, ShoppingCart, ShoppingCartDetail
+from .models import Device, Product, ShoppingCart, ShoppingCartDetail, WorkOrder
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, models, transaction
 from django.contrib import messages
 from django.contrib.auth.models import User
 
@@ -139,3 +141,66 @@ class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
 
     def get_object(self, queryset=None):
         return self.request.user
+
+
+
+# class Device(models.Model):
+#     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     issues = models.TextField(blank=True, null=True)
+#     description = models.TextField(blank=True, null=True)
+#     grade = models.CharField(max_length=255 , blank=True, null=True, choices=DEVICE_GRADE_CHOICES)
+#     cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+#     price = models.DecimalField(max_digits=10, decimal_places=2)
+#     sku = models.CharField(max_length=255)
+#     imei = models.CharField(max_length=15, blank=True, null=True)
+#     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
+#     location = models.ForeignKey(Location, on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to='product_images', blank=True, null=True)
+#     defect = models.TextField(blank=True, null=True)
+#     url = models.URLField(blank=True, null=True)
+#     size = models.CharField(max_length=255, blank=True, null=True)
+#     weight = models.CharField(max_length=255, blank=True, null=True)
+#     color = models.CharField(max_length=255, blank=True, null=True)
+#     sale_start_date = models.DateTimeField(blank=True, null=True)
+#     sale_end_date = models.DateTimeField(blank=True, null=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     is_for_sale = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return f"{self.name} - SKU: {self.sku}"
+    
+#     def is_on_sale(self):
+#         return self.sale_start_date <= timezone.now() <= self.sale_end_date
+
+#     class Meta:
+#         verbose_name_plural = 'Devices'
+#         ordering = ['id']
+class AddDeviceView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = Device
+    fields = ['name', 'description', 'issues', 'grade', 'cost', 'price', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
+    template_name = 'store/add_device.html'
+    success_url = reverse_lazy('home')
+    success_message = 'Device successfully added!'
+
+    def form_valid(self, form):
+        # Generate a random 15-digit number
+        fifteen_digit_uuid = random.randint(100000000000000, 999999999999999)
+        form.instance.sku = fifteen_digit_uuid
+        form.instance.owner = self.request.user
+
+        # Save the Device instance
+        response = super().form_valid(form)
+
+        # Create a WorkOrder for the newly created Device
+        WorkOrder.objects.create(
+            user=self.request.user,
+            device=form.instance,
+            description='New device added to inventory.',
+            problem='New device added to inventory.',
+            notes='New device added to inventory.',
+        )
+        return response
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
