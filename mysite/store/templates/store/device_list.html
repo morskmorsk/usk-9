@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Devices</h2>
+
+    {% if devices %}
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Issues</th>
+                    <th>Grade</th>
+                    <th>Cost</th>
+                    <th>Price</th>
+                    <!-- Add other fields as necessary -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td>{{ device.id }}</td>
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.description }}</td>
+                    <td>{{ device.issues }}</td>
+                    <td>{{ device.grade }}</td>
+                    <td>${{ device.cost }}</td>
+                    <td>${{ device.price }}</td>
+                    <!-- Display other fields as necessary -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No devices available.</p>
+    {% endif %}
+</div>
+{% endblock %}

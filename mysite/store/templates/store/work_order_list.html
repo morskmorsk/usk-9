@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Work Orders</h2>
+
+    {% if work_orders %}
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Device</th>
+                    <th>Description</th>
+                    <th>Problem</th>
+                    <th>Notes</th>
+                    <th>Status</th>
+                    <!-- Add other fields as necessary -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for work_order in work_orders %}
+                <tr>
+                    <td>{{ work_order.id }}</td>
+                    <td>{{ work_order.user.username }}</td>
+                    <td>{{ work_order.device.name }}</td>
+                    <td>{{ work_order.description }}</td>
+                    <td>{{ work_order.problem }}</td>
+                    <td>{{ work_order.notes }}</td>
+                    <td>{{ work_order.status }}</td>
+                    <!-- Display other fields as necessary -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No work orders available.</p>
+    {% endif %}
+</div>
+{% endblock %}

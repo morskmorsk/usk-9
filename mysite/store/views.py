@@ -143,39 +143,6 @@ class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
         return self.request.user
 
 
-
-# class Device(models.Model):
-#     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=255)
-#     issues = models.TextField(blank=True, null=True)
-#     description = models.TextField(blank=True, null=True)
-#     grade = models.CharField(max_length=255 , blank=True, null=True, choices=DEVICE_GRADE_CHOICES)
-#     cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-#     price = models.DecimalField(max_digits=10, decimal_places=2)
-#     sku = models.CharField(max_length=255)
-#     imei = models.CharField(max_length=15, blank=True, null=True)
-#     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, blank=True, null=True)
-#     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-#     image = models.ImageField(upload_to='product_images', blank=True, null=True)
-#     defect = models.TextField(blank=True, null=True)
-#     url = models.URLField(blank=True, null=True)
-#     size = models.CharField(max_length=255, blank=True, null=True)
-#     weight = models.CharField(max_length=255, blank=True, null=True)
-#     color = models.CharField(max_length=255, blank=True, null=True)
-#     sale_start_date = models.DateTimeField(blank=True, null=True)
-#     sale_end_date = models.DateTimeField(blank=True, null=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     is_for_sale = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f"{self.name} - SKU: {self.sku}"
-    
-#     def is_on_sale(self):
-#         return self.sale_start_date <= timezone.now() <= self.sale_end_date
-
-#     class Meta:
-#         verbose_name_plural = 'Devices'
-#         ordering = ['id']
 class AddDeviceView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Device
     fields = ['name', 'description', 'issues', 'grade', 'cost', 'price', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
@@ -204,3 +171,23 @@ class AddDeviceView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
+
+
+class DeviceListView(LoginRequiredMixin, ListView):
+    model = Device
+    template_name = 'store/device_list.html'
+    context_object_name = 'devices'
+
+    class Meta:
+        ordering = ['id']
+        plural_name = 'Devices'
+
+
+class WorkOrderListView(LoginRequiredMixin, ListView):
+    model = WorkOrder
+    template_name = 'store/work_order_list.html'
+    context_object_name = 'work_orders'
+
+    class Meta:
+        ordering = ['id']
+        plural_name = 'Work Orders'
