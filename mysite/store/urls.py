@@ -12,6 +12,8 @@ from .views import (ProductListView,
                     WorkOrderListView,
                     WorkOrderDetailView,
                     DeviceDetailView,
+                    DeviceUpdateView,
+                    WorkOrderUpdateView,
                     )
 
 urlpatterns = [
@@ -28,6 +30,8 @@ urlpatterns = [
      path('workorders/', WorkOrderListView.as_view(), name='work-orders-list'),
      path('workorders/<int:pk>/', WorkOrderDetailView.as_view(), name='work-order-detail'),
      path('devices/<int:pk>/', DeviceDetailView.as_view(), name='device-detail'),
+     path('devices/<int:device_id>/update/', DeviceUpdateView.as_view(), name='device-update'),
+     path('workorders/<int:work_order_id>/update/', WorkOrderUpdateView.as_view(), name='work-order-update'),
      # path('cart-form', CartDetailFormView.as_view(), name='cart-form',),
      # path('add-to-cart/<int:id>/', AddToCartView.as_view(), name='add-to-cart'),
      # path('shopping-cart/', ShoppingCartListView.as_view(), name='shopping-cart-list'),

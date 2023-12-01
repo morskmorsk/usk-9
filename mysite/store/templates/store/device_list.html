@@ -30,8 +30,8 @@
                     <td>${{ device.price }}</td>
                     <!-- Display other fields as necessary -->
                     <td><a href="{% url 'device-detail' device.id %}">View</a></td>
-                    <td><a href="{% url 'device-detail' device.id %}">Update</a></td>
-                    <td><a href="{% url 'device-detail' device.id %}">Work Order</a></td>
+                    <td><a href="{% url 'device-update' device.id %}">Update</a></td>
+                    {% comment %} <td><a href="{% url 'work-order-detail' device.id %}">Work Order</a></td> {% endcomment %}
                 </tr>
                 {% endfor %}
             </tbody>

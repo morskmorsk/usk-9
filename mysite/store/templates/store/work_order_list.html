@@ -30,8 +30,8 @@
                     <td>{{ work_order.status }}</td>
                     <!-- Display other fields as necessary -->
                     <td><a href="{% url 'work-order-detail' work_order.id %}">View</a></td>
-                    <td><a href="{% url 'work-order-detail' work_order.id %}">Update</a></td>
-                    <td><a href="{% url 'work-order-detail' work_order.id %}">Device</a></td>
+                    <td><a href="{% url 'work-order-update' work_order.id %}">Update</a></td>
+                    {% comment %} <td><a href="{% url 'device-detail' work_order.id %}">Device</a></td> {% endcomment %}
                 </tr>
                 {% endfor %}
             </tbody>
