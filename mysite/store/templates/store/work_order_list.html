@@ -29,6 +29,7 @@
                     <td>{{ work_order.notes }}</td>
                     <td>{{ work_order.status }}</td>
                     <!-- Display other fields as necessary -->
+                    <td><a href="{% url 'work-order-detail' work_order.id %}">View</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

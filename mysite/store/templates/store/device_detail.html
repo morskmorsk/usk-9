@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Device Details</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ device.name }}</h5>
+            <p><strong>Description:</strong> {{ device.description }}</p>
+            <p><strong>Issues:</strong> {{ device.issues }}</p>
+            <p><strong>Grade:</strong> {{ device.grade }}</p>
+            <p><strong>Cost:</strong> ${{ device.cost }}</p>
+            <p><strong>Price:</strong> ${{ device.price }}</p>
+            <p><strong>IMEI:</strong> {{ device.imei }}</p>
+            <p><strong>Supplier:</strong> {{ device.supplier.name }}</p>
+            <p><strong>Location:</strong> {{ device.location.name }}</p>
+            <p><strong>Color:</strong> {{ device.color }}</p>
+            <!-- Display other fields as necessary -->
+        </div>
+    </div>
+
+    <a href="{% url 'device-list' %}" class="btn btn-secondary mt-3">Back to Devices</a>
+</div>
+{% endblock %}

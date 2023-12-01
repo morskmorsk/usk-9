@@ -191,3 +191,15 @@ class WorkOrderListView(LoginRequiredMixin, ListView):
     class Meta:
         ordering = ['id']
         plural_name = 'Work Orders'
+
+
+class WorkOrderDetailView(LoginRequiredMixin, DetailView):
+    model = WorkOrder
+    template_name = 'store/work_order_detail.html'
+    context_object_name = 'work_order'
+
+
+class DeviceDetailView(LoginRequiredMixin, DetailView):
+    model = Device
+    template_name = 'store/device_detail.html'
+    context_object_name = 'device'
