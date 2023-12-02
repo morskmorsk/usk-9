@@ -212,7 +212,7 @@ class DeviceDetailView(LoginRequiredMixin, DetailView):
 
 class DeviceUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Device
-    fields = ['name', 'description', 'issues', 'grade', 'cost', 'price', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
+    fields = ['name', 'price', 'description', 'issues', 'grade', 'cost', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
     template_name = 'store/device_update.html'
     success_url = reverse_lazy('device-list')
     success_message = 'Device successfully updated!'
