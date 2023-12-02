@@ -1,3 +1,62 @@
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.form-control-dark {
+  border-color: var(--bs-gray);
+}
+.form-control-dark:focus {
+  border-color: #fff;
+  box-shadow: 0 0 0 .25rem rgba(255, 255, 255, .25);
+}
+
+.text-small {
+  font-size: 85%;
+}
+
+.dropdown-toggle {
+  outline: 0;
+}
+
+.bg-teal {
+  background-color: teal !important;
+}
+
+.text-white {
+  color: white !important;
+}
+
+.btn-secondary {
+  background-color: teal !important;
+  color: white !important;
+  font-size: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  text-align: center;
+  max-width: 200px;
+  max-height: 50px;
+  min-width: 150px;
+}
+
 .custom-button {
   padding: 10px 20px; /* Adjust the padding as needed */
   white-space: normal; /* Allows the text to wrap */
