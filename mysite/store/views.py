@@ -144,7 +144,7 @@ class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
 
 class AddDeviceView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Device
-    fields = ['name', 'description', 'issues', 'grade', 'cost', 'price', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
+    fields = ['name', 'price', 'description', 'issues', 'grade', 'cost', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
     template_name = 'store/add_device.html'
     success_url = reverse_lazy('home')
     success_message = 'Device successfully added!'
