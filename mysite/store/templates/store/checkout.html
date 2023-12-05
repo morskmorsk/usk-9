@@ -4,10 +4,11 @@
     <h2 class="mb-4">Checkout</h2>
     
     <!-- Cart Summary -->
-    <div class="card mb-4">
+    <div class="card mb-5">
         <div class="card-body">
             <h5 class="card-title">Your Order</h5>
             <table class="table">
+                <!-- ... existing template content ... -->
                 <tbody>
                     {% for detail in cart.details.all %}
                     <tr>
@@ -15,20 +16,24 @@
                         <td>{{ detail.quantity }}</td>
                         <td>${{ detail.price }}</td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">Your cart is empty.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="2">Subtotal</td>
-                        <td>${{ cart.subtotal }}</td>
+                        <td>${{ subtotal }}</td>
                     </tr>
                     <tr>
                         <td colspan="2">Tax</td>
-                        <td>${{ cart.tax }}</td>
+                        <td>${{ tax }}</td>
                     </tr>
                     <tr class="font-weight-bold">
                         <td colspan="2">Total</td>
-                        <td>${{ cart.total }}</td>
+                        <td>${{ total }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -39,16 +44,32 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Payment Information</h5>
-            <form>
+            <form action="{% url 'collect-payment' %}" method="post">
+                {% csrf_token %}
                 <!-- Include form fields for payment information here -->
                 <div class="form-group">
-                    <label for="cardNumber">Card Number</label>
-                    <input type="text" class="form-control" id="cardNumber" placeholder="Card Number">
+                    <label for="cashAmount">Cash Amount</label>
+                    <input type="text" class="form-control" id="cashAmount" placeholder="Cash Amount">
                 </div>
+                <div class="form-group">
+                    <label for="cardAmount">Card Amount</label>
+                    <input type="text" class="form-control" id="cardAmount" placeholder="Card Amount">
+                </div>
+                <input type="hidden" name="payment_order_id" value="{{ payment_order.id }}">
                 <!-- Additional fields for expiration, CVV, etc. -->
-                <button type="submit" class="btn btn-primary">Place Order</button>
+                <button type="submit" class="btn btn-primary">Save Payment</button>
             </form>
         </div>
+    </div>
+    <div class="change-div">
+        <span class="change-span">Change Due:
+            {% if change_due > 0 %}
+                <span class="text-success">${{ change_due }}</span>
+                <button type="submit" class="btn btn-primary">Complete Checkout</button>
+            {% else %}
+                <span class="text-danger">${{ change_due }}</span> 
+            {% endif %}
+        </span>
     </div>
 </div>
 {% endblock %}

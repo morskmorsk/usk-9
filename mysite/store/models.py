@@ -1,4 +1,5 @@
 from decimal import Decimal
+import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -16,11 +17,10 @@ TAX_RATE = Decimal('0.09')
 LOW_STOCK_THRESHOLD = 10
 # /////////////////////////////////////////////////////////////////////////////////
 ORDER_STATUS_CHOICES = (
-    ('pending', 'Pending'),
-    ('processing', 'Processing'),
-    ('shipped', 'Shipped'),
-    ('delivered', 'Delivered'),
-    ('cancelled', 'Cancelled'),
+    ('awaiting_payment', 'Awaiting Payment'),
+    ('paid', 'Paid'),
+    ('refunded', 'Refunded'),
+    ('on_hold', 'On Hold'),
 )
 
 WORK_ORDER_STATUS_CHOICES = (
@@ -36,6 +36,24 @@ DEVICE_GRADE_CHOICES = [
     ('C', 'C'),
     ('D', 'D'),
 ]
+
+
+PAYMENT_METHOD_CHOICES = (
+    ('cash', 'Cash'),
+    ('credit_card', 'Credit Card'),
+    ('debit_card', 'Debit Card'),
+    ('check', 'Check'),
+    ('paypal', 'PayPal'),
+    ('apple_pay', 'Apple Pay'),
+    ('google_pay', 'Google Pay'),
+    ('amazon_pay', 'Amazon Pay'),
+    ('venmo', 'Venmo'),
+    ('cash_app', 'Cash App'),
+    ('zelle', 'Zelle'),
+    ('bitcoin', 'Bitcoin'),
+    ('none', 'None'),
+    ('other', 'Other'),
+)
 
 # //////////////////////////////////////////////////////////////////////////////////////////
 class Department(models.Model):
@@ -154,40 +172,53 @@ class Product(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
-    order_date = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='pending')
-    payment_date = models.DateTimeField(blank=True, null=True)
-    shipped_date = models.DateTimeField(blank=True, null=True)
-    shipping_address = models.CharField(max_length=255, blank=True, null=True)
-    shipping_city = models.CharField(max_length=255, blank=True, null=True)
-    shipping_state = models.CharField(max_length=2, blank=True, null=True)
-    shipping_zip_code = models.CharField(max_length=5, blank=True, null=True)
-    shipping_phone = PhoneNumberField(blank=True, null=True)
-    shipping_method = models.CharField(max_length=255, blank=True, null=True)
-    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    tracking_number = models.CharField(max_length=255, blank=True, null=True)
-    tracking_url = models.URLField(blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sub_total = models.DecimalField(max_digits=10, decimal_places=2)
+    tax = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='awaiting_payment')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order {self.id} - Status: {self.status}"
+        return f"Order {self.pk} by {self.user.username}"
     
     class Meta:
         verbose_name_plural = 'Orders'
-        ordering = ['-order_date']
+        ordering = ['-updated_at']
 
+
+    # user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Allows guest checkout with no user attached
+    # order_date = models.DateTimeField(default=timezone.now)
+    # status = models.CharField(max_length=255, choices=ORDER_STATUS_CHOICES, default='pending')
+    # payment_date = models.DateTimeField(blank=True, null=True)
+    # shipped_date = models.DateTimeField(blank=True, null=True)
+    # shipping_address = models.CharField(max_length=255, blank=True, null=True)
+    # shipping_city = models.CharField(max_length=255, blank=True, null=True)
+    # shipping_state = models.CharField(max_length=2, blank=True, null=True)
+    # shipping_zip_code = models.CharField(max_length=5, blank=True, null=True)
+    # shipping_phone = PhoneNumberField(blank=True, null=True)
+    # shipping_method = models.CharField(max_length=255, blank=True, null=True)
+    # shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # subtotal = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # tracking_number = models.CharField(max_length=255, blank=True, null=True)
+    # tracking_url = models.URLField(blank=True, null=True)
+    # notes = models.TextField(blank=True, null=True)
+    
+    # def __str__(self):
+    #     return f"Order {self.id} - Status: {self.status}"
+    
 
 class OrderDetail(models.Model):
     order = models.ForeignKey(Order, related_name='details', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    added_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def subtotal(self):
         return self.price * self.quantity
@@ -336,3 +367,44 @@ class Part(models.Model):
     class Meta:
         verbose_name_plural = 'Parts'
         ordering = ['id']
+
+
+class Payment(models.Model):
+    payment_method = models.CharField(max_length=255, choices=PAYMENT_METHOD_CHOICES, default='cash')
+    cash_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    credit_card_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    transaction_id = models.CharField(max_length=255, unique=True)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def total_amount(self):
+        total = Decimal('0.00')
+        if self.cash_amount:
+            total += self.cash_amount
+        if self.credit_card_amount:
+            total += self.credit_card_amount
+        return total
+    
+    def __str__(self):
+        return f"{self.payment_method} Payment for Order {self.order.id}"
+
+    class Meta:
+        verbose_name_plural = 'Payments'
+        ordering = ['id']
+
+
+class PaymentOrder(models.Model):
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.CharField(max_length=255, unique=True)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def change_due(self):
+        return self.payment.total_amount() - self.order.total
+
+    def __str__(self):
+        return f"{self.payment.payment_method} Payment for Order {self.order.id}"

@@ -14,12 +14,15 @@ from django.views.generic.edit import FormView
 from .forms import UserForm
 from django.contrib.auth import login
 from django.views import View
-from .models import Device, Product, ShoppingCart, ShoppingCartDetail, WorkOrder
+from .models import Device, Payment, PaymentOrder, Product, ShoppingCart, ShoppingCartDetail, WorkOrder
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.db import IntegrityError, models, transaction
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
+from .models import Order, OrderDetail  # Make sure to import your models
+
 
 from .models import Product
 
@@ -117,18 +120,39 @@ class CartDetailUpdatePriceView(LoginRequiredMixin, UpdateView):
         return ShoppingCartDetail.objects.get(id=self.kwargs.get('detail_id'))
 
 
-class CheckOutView(LoginRequiredMixin, TemplateView):
-    template_name = 'store/checkout.html'
+class OrderView(LoginRequiredMixin, View):
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            cart = ShoppingCart.objects.get(user=user)
+        except ShoppingCart.DoesNotExist:
+            # Handle the case where the cart does not exist
+            return HttpResponseForbidden("You do not have a shopping cart.")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        cart = ShoppingCart.objects.get(user=self.request.user)
-        context['cart'] = {
-            'subtotal': cart.calculate_subtotal(),
-            'tax': cart.calculate_tax(),
-            'total': cart.calculate_total(),
-        }
-        return context
+        # Create Order
+        order = Order.objects.create(
+            user=user,
+            sub_total=cart.calculate_subtotal(),
+            tax=cart.calculate_tax(),
+            total=cart.calculate_total()
+        )
+
+        # Create OrderDetail for each ShoppingCartDetail
+        for item in cart.details.all():
+            OrderDetail.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.price,
+                discount=item.discount
+            )
+
+        # Clear ShoppingCart
+        cart.details.all().delete()
+
+        # Redirect to a confirmation page or similar
+        return redirect('order_confirmation', order_id=order.pk)
 
 
 class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -212,7 +236,7 @@ class DeviceDetailView(LoginRequiredMixin, DetailView):
 
 class DeviceUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Device
-    fields = ['name', 'price', 'description', 'issues', 'grade', 'cost', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
+    fields = ['name', 'price','description', 'issues', 'grade', 'cost', 'imei', 'supplier', 'location', 'image', 'defect', 'color']
     template_name = 'store/device_update.html'
     success_url = reverse_lazy('device-list')
     success_message = 'Device successfully updated!'
@@ -230,3 +254,53 @@ class WorkOrderUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return WorkOrder.objects.get(id=self.kwargs.get('work_order_id'))
+
+
+class CheckOutView(LoginRequiredMixin, TemplateView):
+    template_name = 'store/checkout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = ShoppingCart.objects.get(user=self.request.user)
+        order, created = Order.objects.get_or_create(
+            user=self.request.user,
+            status='awaiting_payment',
+            sub_total=cart.calculate_subtotal(),
+            tax=cart.calculate_tax(),
+            total=cart.calculate_total()
+        )
+        payment, created = Payment.objects.get_or_create(
+            transaction_id=uuid.uuid4(),
+        )
+        payment_order, created = PaymentOrder.objects.get_or_create(
+            payment=payment,
+            order=order,
+            amount=payment.total_amount(),
+            transaction_id=payment.transaction_id,
+            # Include other necessary fields for PaymentOrder
+        )
+        context['payment'] = payment
+        context['order'] = order
+        context['payment_order'] = payment_order
+        context['cart'] = cart
+        context['subtotal'] = cart.calculate_subtotal()
+        context['tax'] = cart.calculate_tax()
+        context['total'] = cart.calculate_total()
+        context['change_due'] = payment.total_amount() - order.total
+
+        return context
+
+
+def CollectPayment(request):
+
+    if request.method == 'POST':
+        # payment_method = request.POST.get('payment_method')
+        cash_amount = request.POST.get('cashAmount')
+        credit_card_amount = request.POST.get('cardAmount')
+        payment_order_id = request.POST.get('payment_order_id')
+        payment_order = PaymentOrder.objects.get(id=payment_order_id)
+        payment_order.payment.cash_amount = cash_amount
+        payment_order.payment.credit_card_amount = credit_card_amount
+        payment_order.payment.save()
+        payment_order.save()
+        return redirect('checkout')
