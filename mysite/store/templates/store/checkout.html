@@ -8,29 +8,18 @@
         <div class="card-body">
             <h5 class="card-title">Your Order</h5>
             <table class="table">
-                <tbody>
-                    {% for detail in cart.details.all %}
-                    <tr>
-                        <td>{{ detail.product.name }}</td>
-                        <td>{{ detail.quantity }}</td>
-                        <td>${{ detail.price }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2">Subtotal</td>
-                        <td>${{ cart.subtotal }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Tax</td>
-                        <td>${{ cart.tax }}</td>
-                    </tr>
-                    <tr class="font-weight-bold">
-                        <td colspan="2">Total</td>
-                        <td>${{ cart.total }}</td>
-                    </tr>
-                </tfoot>
+                <tr>
+                    <td colspan="2">Subtotal</td>
+                    <td>${{ cart.subtotal }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Tax</td>
+                    <td>${{ cart.tax }}</td>
+                </tr>
+                <tr class="font-weight-bold">
+                    <td colspan="2">Total</td>
+                    <td>${{ cart.total }}</td>
+                </tr>
             </table>
         </div>
     </div>
