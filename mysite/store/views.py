@@ -127,6 +127,7 @@ class CheckOutView(LoginRequiredMixin, TemplateView):
             'subtotal': cart.calculate_subtotal(),
             'tax': cart.calculate_tax(),
             'total': cart.calculate_total(),
+            'change_due': cart.calculate_total() * -1,
         }
         return context
 
