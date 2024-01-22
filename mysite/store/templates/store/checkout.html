@@ -22,7 +22,7 @@
                 </tr>
                 <tr class="font-weight-bold">
                     <td colspan="2">Change Due</td>
-                    <td>${{ cart.change_due }}</td>
+                    <td>${{ payment.change_due }}</td>
                 </tr>
             </table>
         </div>
@@ -32,7 +32,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Payment Information</h5><br>
-            <form>
+            <form method="post" action="{% url 'save-cash-payment' %}"> {% csrf_token %}
                 <!-- Include form fields for payment information here -->
                 <div class="form-group">
                     <label for="cashAmount">Cash Amount</label>

@@ -14,7 +14,7 @@ from django.views.generic.edit import FormView
 from .forms import UserForm
 from django.contrib.auth import login
 from django.views import View
-from .models import Device, Product, ShoppingCart, ShoppingCartDetail, WorkOrder
+from .models import Device, Product, ShoppingCart, ShoppingCartDetail, WorkOrder, CartPayment
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.db import IntegrityError, models, transaction
@@ -123,14 +123,27 @@ class CheckOutView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cart = ShoppingCart.objects.get(user=self.request.user)
+        payment, created = CartPayment.objects.get_or_create(cart=cart)
+
         context['cart'] = {
             'subtotal': cart.calculate_subtotal(),
             'tax': cart.calculate_tax(),
             'total': cart.calculate_total(),
-            'change_due': cart.calculate_total() * -1,
         }
+        payment.change_due = cart.calculate_total()*-1
+        payment.save()
+        context['payment'] = payment
+
         return context
 
+
+def save_cash_payment(request):
+    cart = ShoppingCart.objects.get(user=request.user)
+    payment = CartPayment.objects.get(cart=cart)
+    payment.cash_amount = request.POST.get('cash_amount')
+    payment.change_due = payment.cash_amount - cart.calculate_total()
+    payment.save()
+    return redirect('checkout')
 
 class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User

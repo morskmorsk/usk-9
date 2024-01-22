@@ -339,8 +339,9 @@ class Part(models.Model):
 
 
 class CartPayment(models.Model):
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=255)
+    cash_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    credit_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    change_due = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
     # transaction_id = models.CharField(max_length=255)
     # notes = models.TextField(blank=True, null=True)

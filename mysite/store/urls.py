@@ -14,6 +14,7 @@ from .views import (ProductListView,
                     DeviceDetailView,
                     DeviceUpdateView,
                     WorkOrderUpdateView,
+                    save_cash_payment,
                     )
 
 urlpatterns = [
@@ -41,4 +42,5 @@ urlpatterns = [
      # path('add-to-cart/<int:id>/', AddToCartView.as_view(), name='add-to-cart'),
      # path('workorders/', WorkOrderListView.as_view(), name='work-orders-list'),
      # path('cart-form/<int:id>/', CartFormView.as_view(), name='cart-form'),
-]
+     path('save-cash-payment/', save_cash_payment, name='save-cash-payment'),
+]    
