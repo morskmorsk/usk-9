@@ -20,8 +20,8 @@ from django.http import Http404
 from django.db import IntegrityError, models, transaction
 from django.contrib import messages
 from django.contrib.auth.models import User
-
 from .models import Product
+from .forms import CashPaymentForm, CardPaymentForm
 
 logger = logging.getLogger(__name__)
 
@@ -117,33 +117,25 @@ class CartDetailUpdatePriceView(LoginRequiredMixin, UpdateView):
         return ShoppingCartDetail.objects.get(id=self.kwargs.get('detail_id'))
 
 
-class CheckOutView(LoginRequiredMixin, TemplateView):
-    template_name = 'store/checkout.html'
+# class CheckOutView(LoginRequiredMixin, TemplateView):
+#     template_name = 'store/checkout.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        cart = ShoppingCart.objects.get(user=self.request.user)
-        payment, created = CartPayment.objects.get_or_create(cart=cart)
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         cart = ShoppingCart.objects.get(user=self.request.user)
+#         payment, created = CartPayment.objects.get_or_create(cart=cart)
 
-        context['cart'] = {
-            'subtotal': cart.calculate_subtotal(),
-            'tax': cart.calculate_tax(),
-            'total': cart.calculate_total(),
-        }
-        payment.change_due = cart.calculate_total()*-1
-        payment.save()
-        context['payment'] = payment
+#         context['cart'] = {
+#             'subtotal': cart.calculate_subtotal(),
+#             'tax': cart.calculate_tax(),
+#             'total': cart.calculate_total(),
+#         }
+#         payment.change_due = cart.calculate_total()*-1
+#         payment.save()
+#         context['payment'] = payment
 
-        return context
+#         return context
 
-
-def save_cash_payment(request):
-    cart = ShoppingCart.objects.get(user=request.user)
-    payment = CartPayment.objects.get(cart=cart)
-    payment.cash_amount = request.POST.get('cash_amount')
-    payment.change_due = payment.cash_amount - cart.calculate_total()
-    payment.save()
-    return redirect('checkout')
 
 class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
@@ -244,3 +236,47 @@ class WorkOrderUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return WorkOrder.objects.get(id=self.kwargs.get('work_order_id'))
+
+
+class CashPaymentView(FormView):
+    template_name = 'store/checkout.html'  # Your checkout template
+    form_class = CashPaymentForm
+    success_url = '/checkout/'  # URL to redirect after processing the form
+
+    def form_valid(self, form):
+        cash_amount = form.cleaned_data['cash_amount']
+        cart = ShoppingCart.objects.get(user=self.request.user)
+        payment = CartPayment.objects.get(cart=cart)
+        payment.cash_amount = cash_amount
+        payment.change_due = cash_amount - cart.calculate_total()
+        payment.save()
+        return super().form_valid(form)
+
+
+class CardPaymentView(FormView):
+    template_name = 'store/checkout.html'
+    form_class = CardPaymentForm
+    success_url = '/checkout/'
+
+    def form_valid(self, form):
+        card_amount = form.cleaned_data['card_amount']
+        cart = ShoppingCart.objects.get(user=self.request.user)
+        payment = CartPayment.objects.get(cart=cart)
+        payment.cash_amount = card_amount
+        payment.change_due = card_amount - cart.calculate_total()
+        payment.save()
+        return super().form_valid(form)
+
+
+class CheckoutView(TemplateView):
+    template_name = 'store/checkout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = get_object_or_404(ShoppingCart, user=self.request.user)
+        payment = CartPayment.objects.get(cart=cart)
+        context['cart'] = cart
+        context['payment'] = payment
+        context['cash_payment_form'] = CashPaymentForm()
+        context['card_payment_form'] = CardPaymentForm()
+        return context

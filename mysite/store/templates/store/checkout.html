@@ -28,29 +28,30 @@
         </div>
     </div>
 
-    <!-- Checkout Form -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Payment Information</h5><br>
-            <form method="post" action="{% url 'save-cash-payment' %}"> {% csrf_token %}
-                <!-- Include form fields for payment information here -->
-                <div class="form-group">
-                    <label for="cashAmount">Cash Amount</label>
-                    <input type="text" class="form-control" id="cashAmount" placeholder="Cash Amount">
-                </div><br>
-                <!-- Additional fields for expiration, CVV, etc. -->
-                <button type="submit" class="btn btn-primary">Save Cash Amount</button>
-            </form><br>
-            <form>
-                <!-- Include form fields for payment information here -->
-                <div class="form-group">
-                    <label for="cardAmount">Card Amount</label>
-                    <input type="text" class="form-control" id="cardAmount" placeholder="Card Amount">
-                </div><br>
-                <!-- Additional fields for expiration, CVV, etc. -->
-                <button type="submit" class="btn btn-primary">Save Card Amount</button>
-            </form>
+        <!-- Checkout Form for Cash Payment -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Cash Payment Information</h5>
+                <form method="post" action="{% url 'save-cash-payment' %}">
+                    {% csrf_token %}
+                    {{ cash_payment_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Save Cash Amount</button>
+                </form>
+            </div>
+        </div>
+        <br>
+    
+        <!-- Checkout Form for Card Payment -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Card Payment Information</h5>
+                <form method="post" action="{% url 'save-credit-payment' %}">
+                    {% csrf_token %}
+                    {{ card_payment_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Save Card Amount</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}
+    
