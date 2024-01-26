@@ -247,8 +247,8 @@ class CashPaymentView(FormView):
         cash_amount = form.cleaned_data['cash_amount']
         cart = ShoppingCart.objects.get(user=self.request.user)
         payment = CartPayment.objects.get(cart=cart)
-        payment.cash_amount = cash_amount
-        payment.change_due = cash_amount - cart.calculate_total()
+        payment.payment_amount += cash_amount
+        payment.change_due = payment.payment_amount - cart.calculate_total()
         payment.save()
         return super().form_valid(form)
 
@@ -262,8 +262,11 @@ class CardPaymentView(FormView):
         card_amount = form.cleaned_data['card_amount']
         cart = ShoppingCart.objects.get(user=self.request.user)
         payment = CartPayment.objects.get(cart=cart)
-        payment.cash_amount = card_amount
-        payment.change_due = card_amount - cart.calculate_total()
+        if payment.payment_amount is None:
+            payment.payment_amount = 0
+            payment.save()
+        payment.payment_amount += card_amount
+        payment.change_due = payment.payment_amount - cart.calculate_total()
         payment.save()
         return super().form_valid(form)
 
@@ -275,6 +278,9 @@ class CheckoutView(TemplateView):
         context = super().get_context_data(**kwargs)
         cart = get_object_or_404(ShoppingCart, user=self.request.user)
         payment = CartPayment.objects.get(cart=cart)
+        if payment.payment_amount is None:
+            payment.payment_amount = 0
+            payment.save()
         context['cart'] = cart
         context['payment'] = payment
         context['cash_payment_form'] = CashPaymentForm()
