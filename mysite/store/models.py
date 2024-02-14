@@ -336,3 +336,22 @@ class Part(models.Model):
     class Meta:
         verbose_name_plural = 'Parts'
         ordering = ['id']
+
+
+class CartPayment(models.Model):
+    cash_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    credit_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    change_due = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
+    # transaction_id = models.CharField(max_length=255)
+    # notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.payment_method} Payment for Cart {self.cart.id}"
+
+    class Meta:
+        verbose_name_plural = 'Cart Payments'
+        ordering = ['id']

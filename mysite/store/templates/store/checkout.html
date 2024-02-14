@@ -8,47 +8,65 @@
         <div class="card-body">
             <h5 class="card-title">Your Order</h5>
             <table class="table">
-                <tbody>
-                    {% for detail in cart.details.all %}
-                    <tr>
-                        <td>{{ detail.product.name }}</td>
-                        <td>{{ detail.quantity }}</td>
-                        <td>${{ detail.price }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2">Subtotal</td>
-                        <td>${{ cart.subtotal }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Tax</td>
-                        <td>${{ cart.tax }}</td>
-                    </tr>
-                    <tr class="font-weight-bold">
-                        <td colspan="2">Total</td>
-                        <td>${{ cart.total }}</td>
-                    </tr>
-                </tfoot>
+                <tr>
+                    <td colspan="2">Subtotal</td>
+                    <td>${{ subtotal }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Tax</td>
+                    <td>${{ tax }}</td>
+                </tr>
+                <tr class="font-weight-bold">
+                    <td colspan="2">Total</td>
+                    <td>${{ total }}</td>
+                </tr>
+                <tr class="font-weight-bold">
+                    <td colspan="2">Change Due</td>
+                    <td>${{ payment.change_due }}</td>
+                </tr>
             </table>
         </div>
     </div>
-
-    <!-- Checkout Form -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Payment Information</h5>
-            <form>
-                <!-- Include form fields for payment information here -->
-                <div class="form-group">
-                    <label for="cardNumber">Card Number</label>
-                    <input type="text" class="form-control" id="cardNumber" placeholder="Card Number">
-                </div>
-                <!-- Additional fields for expiration, CVV, etc. -->
-                <button type="submit" class="btn btn-primary">Place Order</button>
-            </form>
-        </div>
+<!-- Display Cash and Credit Amounts -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Payment Details</h5>
+        <p>Cash Paid: ${{ payment.cash_amount }}</p>
+        <p>Credit Paid: ${{ payment.credit_amount }}</p>
     </div>
 </div>
-{% endblock %}
+
+<!-- Button to Clear Payments -->
+<form method="post" action="{% url 'clear-payments' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">Clear All Payments</button>
+</form>
+
+
+        <!-- Checkout Form for Cash Payment -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Cash Payment Information</h5>
+                <form method="post" action="{% url 'save-cash-payment' %}">
+                    {% csrf_token %}
+                    {{ cash_payment_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Save Cash Amount</button>
+                </form>
+            </div>
+        </div>
+        <br>
+    
+        <!-- Checkout Form for Card Payment -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Card Payment Information</h5>
+                <form method="post" action="{% url 'save-credit-payment' %}">
+                    {% csrf_token %}
+                    {{ card_payment_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Save Card Amount</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    
