@@ -14,6 +14,7 @@ from .views import (ProductListView,
                     DeviceDetailView,
                     DeviceUpdateView,
                     WorkOrderUpdateView,
+                    ClearPaymentsView
                     )
 from django.urls import path
 from .views import CashPaymentView, CardPaymentView
@@ -36,4 +37,5 @@ urlpatterns = [
      path('workorders/<int:work_order_id>/update/', WorkOrderUpdateView.as_view(), name='work-order-update'),
      path('save-cash-payment/', CashPaymentView.as_view(), name='save-cash-payment'),
      path('save-credit-payment/', CardPaymentView.as_view(), name='save-credit-payment'),
+     path('clear-payments/', ClearPaymentsView.as_view(), name='clear-payments'),
 ]    

@@ -10,15 +10,15 @@
             <table class="table">
                 <tr>
                     <td colspan="2">Subtotal</td>
-                    <td>${{ cart.subtotal }}</td>
+                    <td>${{ subtotal }}</td>
                 </tr>
                 <tr>
                     <td colspan="2">Tax</td>
-                    <td>${{ cart.tax }}</td>
+                    <td>${{ tax }}</td>
                 </tr>
                 <tr class="font-weight-bold">
                     <td colspan="2">Total</td>
-                    <td>${{ cart.total }}</td>
+                    <td>${{ total }}</td>
                 </tr>
                 <tr class="font-weight-bold">
                     <td colspan="2">Change Due</td>
@@ -27,6 +27,21 @@
             </table>
         </div>
     </div>
+<!-- Display Cash and Credit Amounts -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Payment Details</h5>
+        <p>Cash Paid: ${{ payment.cash_amount }}</p>
+        <p>Credit Paid: ${{ payment.credit_amount }}</p>
+    </div>
+</div>
+
+<!-- Button to Clear Payments -->
+<form method="post" action="{% url 'clear-payments' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">Clear All Payments</button>
+</form>
+
 
         <!-- Checkout Form for Cash Payment -->
         <div class="card">

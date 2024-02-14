@@ -117,26 +117,6 @@ class CartDetailUpdatePriceView(LoginRequiredMixin, UpdateView):
         return ShoppingCartDetail.objects.get(id=self.kwargs.get('detail_id'))
 
 
-# class CheckOutView(LoginRequiredMixin, TemplateView):
-#     template_name = 'store/checkout.html'
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         cart = ShoppingCart.objects.get(user=self.request.user)
-#         payment, created = CartPayment.objects.get_or_create(cart=cart)
-
-#         context['cart'] = {
-#             'subtotal': cart.calculate_subtotal(),
-#             'tax': cart.calculate_tax(),
-#             'total': cart.calculate_total(),
-#         }
-#         payment.change_due = cart.calculate_total()*-1
-#         payment.save()
-#         context['payment'] = payment
-
-#         return context
-
-
 class UpdateUserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
     fields = ['first_name', 'last_name', 'email']
@@ -282,7 +262,22 @@ class CheckoutView(TemplateView):
             payment.payment_amount = 0
             payment.save()
         context['cart'] = cart
+        context['subtotal'] = cart.calculate_subtotal()
+        context['tax'] = cart.calculate_tax()
+        context['total'] = cart.calculate_total()
         context['payment'] = payment
         context['cash_payment_form'] = CashPaymentForm()
         context['card_payment_form'] = CardPaymentForm()
+        context['change_due'] = payment.change_due
         return context
+
+
+class ClearPaymentsView(View):
+    def post(self, request, *args, **kwargs):
+        cart = ShoppingCart.objects.get(user=request.user)
+        payment = CartPayment.objects.get(cart=cart)
+        payment.cash_amount = 0
+        payment.credit_amount = 0
+        payment.change_due = payment.payment_amount - cart.calculate_total()
+        payment.save()
+        return redirect('checkout')  # Redirect back to the checkout page
